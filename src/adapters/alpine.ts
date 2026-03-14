@@ -170,12 +170,14 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
       placeholder        = '',
       selectOnFocus      = false,
       blurOnComplete     = false,
+      defaultValue       = '',
+      readOnly:          readOnlyOpt = false,
     } = options
 
     // Normalise separatorAfter to an array for consistent rendering
     const separatorAfterPositions: number[] = Array.isArray(rawSepAfter) ? rawSepAfter : [rawSepAfter]
 
-    const digito = createDigito({ length, type, pattern, pasteTransformer, onInvalidChar, onComplete, onExpire, onResend, haptic, sound })
+    const digito = createDigito({ length, type, pattern, pasteTransformer, onInvalidChar, onComplete, onExpire, onResend, haptic, sound, readOnly: readOnlyOpt })
 
     let isDisabled   = initialDisabled
     let successState = false
@@ -267,7 +269,18 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
     hiddenInputEl.setAttribute('autocapitalize', 'off')
     hiddenInputEl.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;opacity:0;border:none;outline:none;background:transparent;color:transparent;caret-color:transparent;z-index:1;cursor:text;font-size:1px'
     if (inputName) hiddenInputEl.name = inputName
+    if (readOnlyOpt) hiddenInputEl.setAttribute('aria-readonly', 'true')
     wrapperEl.appendChild(hiddenInputEl)
+
+    // Apply defaultValue once on mount — no onComplete, no onChange
+    if (defaultValue) {
+      const filtered = filterString(defaultValue.slice(0, length), type, pattern)
+      if (filtered) {
+        for (let i = 0; i < filtered.length; i++) digito.inputChar(i, filtered[i])
+        digito.cancelPendingComplete()
+        hiddenInputEl.value = filtered
+      }
+    }
 
     // ── Built-in timer + resend (mirrors vanilla adapter) ──────────────────────
     let timerBadgeEl:       HTMLSpanElement   | null = null
@@ -427,6 +440,11 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
       // resets selectionStart/End in some browsers, clobbering the cursor.
       const newValue = slotValues.join('')
       if (hiddenInputEl.value !== newValue) hiddenInputEl.value = newValue
+
+      wrapperEl.toggleAttribute('data-complete', digito.state.isComplete)
+      wrapperEl.toggleAttribute('data-invalid',  digito.state.hasError)
+      wrapperEl.toggleAttribute('data-disabled', isDisabled)
+      wrapperEl.toggleAttribute('data-readonly', readOnlyOpt)
     }
 
     // ── Event handlers ─────────────────────────────────────────────────────────
@@ -435,11 +453,19 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
       const pos = hiddenInputEl.selectionStart ?? 0
       if (e.key === 'Backspace') {
         e.preventDefault()
+        if (readOnlyOpt) return
         digito.deleteChar(pos)
         syncSlotsToDOM()
         onChangeProp?.(digito.getCode())
         const next = digito.state.activeSlot
         requestAnimationFrame(() => hiddenInputEl.setSelectionRange(next, next))
+      } else if (e.key === 'Delete') {
+        e.preventDefault()
+        if (readOnlyOpt) return
+        digito.clearSlot(pos)
+        syncSlotsToDOM()
+        onChangeProp?.(digito.getCode())
+        requestAnimationFrame(() => hiddenInputEl.setSelectionRange(pos, pos))
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         digito.moveFocusLeft(pos)
@@ -470,7 +496,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
     })
 
     hiddenInputEl.addEventListener('input', () => {
-      if (isDisabled) return
+      if (isDisabled || readOnlyOpt) return
       const raw = hiddenInputEl.value
       if (!raw) {
         digito.resetState()
@@ -495,7 +521,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
     })
 
     hiddenInputEl.addEventListener('paste', (e) => {
-      if (isDisabled) return
+      if (isDisabled || readOnlyOpt) return
       e.preventDefault()
       const text = e.clipboardData?.getData('text') ?? ''
       const pos  = hiddenInputEl.selectionStart ?? 0

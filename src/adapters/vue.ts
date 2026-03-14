@@ -341,10 +341,17 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
     const pos = inputRef.value?.selectionStart ?? 0
     if (e.key === 'Backspace') {
       e.preventDefault()
+      if (readOnlyOpt) return
       digito.deleteChar(pos)
       sync()
       const next = digito.state.activeSlot
       requestAnimationFrame(() => inputRef.value?.setSelectionRange(next, next))
+    } else if (e.key === 'Delete') {
+      e.preventDefault()
+      if (readOnlyOpt) return
+      digito.clearSlot(pos)
+      sync()
+      requestAnimationFrame(() => inputRef.value?.setSelectionRange(pos, pos))
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault()
       digito.moveFocusLeft(pos)
@@ -375,7 +382,7 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
   }
 
   function onChange(e: Event): void {
-    if (isDisabled.value) return
+    if (isDisabled.value || readOnlyOpt) return
     const raw = (e.target as HTMLInputElement).value
     if (!raw) {
       digito.resetState()
@@ -396,7 +403,7 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
   }
 
   function onPaste(e: ClipboardEvent): void {
-    if (isDisabled.value) return
+    if (isDisabled.value || readOnlyOpt) return
     e.preventDefault()
     const text = e.clipboardData?.getData('text') ?? ''
     const pos  = inputRef.value?.selectionStart ?? 0

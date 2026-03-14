@@ -502,6 +502,12 @@ function mountOnWrapper(
     // resets selectionStart/End in some browsers, clobbering the cursor.
     const newValue = slotValues.join('')
     if (hiddenInputEl.value !== newValue) hiddenInputEl.value = newValue
+
+    // Expose component state as data attributes for CSS/Tailwind targeting
+    wrapperEl.toggleAttribute('data-complete', otpCore.state.isComplete)
+    wrapperEl.toggleAttribute('data-invalid',  otpCore.state.hasError)
+    wrapperEl.toggleAttribute('data-disabled', isDisabled)
+    wrapperEl.toggleAttribute('data-readonly', isReadOnly)
   }
 
   // ── Event handlers ────────────────────────────────────────────────────────
@@ -511,9 +517,16 @@ function mountOnWrapper(
 
     if (event.key === 'Backspace') {
       event.preventDefault()
+      if (isReadOnly) return
       otpCore.deleteChar(cursorPos)
       syncSlotsToDOM()
       hiddenInputEl.setSelectionRange(otpCore.state.activeSlot, otpCore.state.activeSlot)
+    } else if (event.key === 'Delete') {
+      event.preventDefault()
+      if (isReadOnly) return
+      otpCore.clearSlot(cursorPos)
+      syncSlotsToDOM()
+      hiddenInputEl.setSelectionRange(cursorPos, cursorPos)
     } else if (event.key === 'Tab') {
       if (event.shiftKey) {
         // Shift+Tab: move to previous slot, or exit to previous DOM element from first slot
@@ -547,6 +560,7 @@ function mountOnWrapper(
   }
 
   function onHiddenInputChange(_event: Event): void {
+    if (isReadOnly) return
     const rawValue = hiddenInputEl.value
 
     if (!rawValue) {
@@ -582,6 +596,7 @@ function mountOnWrapper(
 
   function onHiddenInputPaste(event: ClipboardEvent): void {
     event.preventDefault()
+    if (isReadOnly) return
     const pastedText = event.clipboardData?.getData('text') ?? ''
     const cursorPos  = hiddenInputEl.selectionStart ?? 0
     otpCore.pasteString(cursorPos, pastedText)

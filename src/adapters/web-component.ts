@@ -228,7 +228,7 @@ class DigitoInput extends HTMLElement {
    * Any change to these attributes causes a full shadow DOM rebuild so the
    * component always reflects its attribute state without manual reconciliation.
    */
-  static observedAttributes = ['length', 'type', 'timer', 'resend-after', 'disabled', 'separator-after', 'separator', 'masked', 'mask-char', 'name', 'placeholder', 'auto-focus', 'select-on-focus', 'blur-on-complete']
+  static observedAttributes = ['length', 'type', 'timer', 'resend-after', 'disabled', 'readonly', 'separator-after', 'separator', 'masked', 'mask-char', 'name', 'placeholder', 'auto-focus', 'select-on-focus', 'blur-on-complete', 'default-value']
 
   // Shadow DOM references — rebuilt in full on every attributeChangedCallback.
   private slotEls:        HTMLDivElement[]              = []
@@ -245,6 +245,7 @@ class DigitoInput extends HTMLElement {
   // Runtime mutable state — toggled by setDisabled() without a full rebuild.
   private _isDisabled  = false
   private _isSuccess   = false
+  private _isReadOnly  = false
 
   // JS-property-only options. These cannot be expressed as HTML attributes
   // (RegExp and functions are not serialisable to strings), so they are stored
@@ -375,6 +376,8 @@ class DigitoInput extends HTMLElement {
     return isNaN(v) || v < 1 ? 30 : Math.floor(v)
   }
   private get _disabledAttr():    boolean   { return this.hasAttribute('disabled') }
+  private get _readOnlyAttr():    boolean   { return this.hasAttribute('readonly') }
+  private get _defaultValue():    string    { return this.getAttribute('default-value') ?? '' }
   /** Parses `separator-after="2,4"` into `[2, 4]`. Filters NaN and zero values. */
   private get _separatorAfter():  number[]  {
     const v = this.getAttribute('separator-after')
@@ -418,6 +421,7 @@ class DigitoInput extends HTMLElement {
     const selectOnFocus      = this._selectOnFocus
     const blurOnComplete     = this._blurOnComplete
     this._isDisabled         = this._disabledAttr
+    this._isReadOnly         = this._readOnlyAttr
 
     this.timerCtrl?.stop()
     this.resendCountdown?.stop()
@@ -495,6 +499,7 @@ class DigitoInput extends HTMLElement {
       pattern:          this._pattern,
       pasteTransformer: this._pasteTransformer,
       onInvalidChar:    this._onInvalidChar,
+      readOnly:         this._isReadOnly,
       onComplete: (code) => {
         // Call JS property setter AND dispatch CustomEvent
         this._onComplete?.(code)
@@ -573,6 +578,19 @@ class DigitoInput extends HTMLElement {
       })
     }
 
+    if (this._isReadOnly) hiddenInput.setAttribute('aria-readonly', 'true')
+
+    // Apply defaultValue once on build — no onComplete, no change event
+    const dv = this._defaultValue
+    if (dv) {
+      const filtered = filterString(dv.slice(0, length), type, this._pattern)
+      if (filtered) {
+        for (let i = 0; i < filtered.length; i++) this.digito!.inputChar(i, filtered[i])
+        this.digito!.cancelPendingComplete()
+        hiddenInput.value = filtered
+      }
+    }
+
     this.attachEvents(selectOnFocus, blurOnComplete)
 
     if (this._isDisabled) this.applyDisabledDOM(true)
@@ -645,6 +663,11 @@ class DigitoInput extends HTMLElement {
     // resets selectionStart/End in some browsers, clobbering the cursor.
     const newValue = slotValues.join('')
     if (this.hiddenInput.value !== newValue) this.hiddenInput.value = newValue
+
+    this.toggleAttribute('data-complete', this.digito.state.isComplete)
+    this.toggleAttribute('data-invalid',  this.digito.state.hasError)
+    this.toggleAttribute('data-disabled', this._isDisabled)
+    this.toggleAttribute('data-readonly', this._isReadOnly)
   }
 
   /**
@@ -679,11 +702,19 @@ class DigitoInput extends HTMLElement {
       const pos = input.selectionStart ?? 0
       if (e.key === 'Backspace') {
         e.preventDefault()
+        if (this._isReadOnly) return
         digito.deleteChar(pos)
         this.syncSlotsToDOM()
         this.dispatchChange()
         const next = digito.state.activeSlot
         requestAnimationFrame(() => input.setSelectionRange(next, next))
+      } else if (e.key === 'Delete') {
+        e.preventDefault()
+        if (this._isReadOnly) return
+        digito.clearSlot(pos)
+        this.syncSlotsToDOM()
+        this.dispatchChange()
+        requestAnimationFrame(() => input.setSelectionRange(pos, pos))
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         digito.moveFocusLeft(pos)
@@ -712,7 +743,7 @@ class DigitoInput extends HTMLElement {
     })
 
     input.addEventListener('input', () => {
-      if (this._isDisabled) return
+      if (this._isDisabled || this._isReadOnly) return
       const raw = input.value
       if (!raw) {
         digito.resetState()
@@ -737,7 +768,7 @@ class DigitoInput extends HTMLElement {
     })
 
     input.addEventListener('paste', (e) => {
-      if (this._isDisabled) return
+      if (this._isDisabled || this._isReadOnly) return
       e.preventDefault()
       const text = e.clipboardData?.getData('text') ?? ''
       const pos  = input.selectionStart ?? 0

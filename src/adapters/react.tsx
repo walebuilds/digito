@@ -410,10 +410,17 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
     const pos = inputRef.current?.selectionStart ?? 0
     if (e.key === 'Backspace') {
       e.preventDefault()
+      if (readOnlyProp) return
       digito.deleteChar(pos)
       sync()
       const next = digito.state.activeSlot
       requestAnimationFrame(() => inputRef.current?.setSelectionRange(next, next))
+    } else if (e.key === 'Delete') {
+      e.preventDefault()
+      if (readOnlyProp) return
+      digito.clearSlot(pos)
+      sync()
+      requestAnimationFrame(() => inputRef.current?.setSelectionRange(pos, pos))
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault()
       digito.moveFocusLeft(pos)
@@ -444,7 +451,7 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
   }, [])
 
   const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    if (disabledRef.current) return
+    if (disabledRef.current || readOnlyProp) return
     const raw = e.target.value
     if (!raw) {
       digito.resetState()
@@ -465,7 +472,7 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
   }, [type, length, blurOnComplete])
 
   const onPaste = useCallback((e: ClipboardEvent<HTMLInputElement>) => {
-    if (disabledRef.current) return
+    if (disabledRef.current || readOnlyProp) return
     e.preventDefault()
     const text = e.clipboardData.getData('text')
     const pos  = inputRef.current?.selectionStart ?? 0
