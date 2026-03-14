@@ -40,11 +40,25 @@ export type DigitoOptions = {
   resendAfter?:  number
   /** Called with the joined code string when all slots are filled. */
   onComplete?:   (code: string) => void
-  /** Called every second with the remaining seconds. Use to drive a custom timer UI. */
+  /**
+   * Called every second with the remaining seconds. Use to drive a custom timer UI.
+   *
+   * **Adapter note:** Only fires in adapters that include a built-in countdown timer
+   * (vanilla, alpine, web component). In React, Vue, and Svelte the timer is managed
+   * separately inside each adapter — pass `onTick` as part of those adapters' options.
+   * Has no effect when passed directly to `createDigito`.
+   */
   onTick?:       (remainingSeconds: number) => void
   /** Called when the countdown reaches zero. */
   onExpire?:     () => void
-  /** Called when the resend action is triggered. */
+  /**
+   * Called when the resend action is triggered.
+   *
+   * **Adapter note:** Only fires automatically in adapters with a built-in Resend button
+   * (vanilla, alpine, web component). In React, Vue, and Svelte there is no built-in
+   * Resend button — call `onResend` manually in your own UI handler.
+   * Has no effect when passed directly to `createDigito`.
+   */
   onResend?:     () => void
   /** Vibrate on completion and error via `navigator.vibrate`. Default: `true`. */
   haptic?:       boolean

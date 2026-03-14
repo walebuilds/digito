@@ -7,7 +7,7 @@
  * @license MIT
  */
 
-import { writable, derived, get } from 'svelte/store'
+import { writable, derived, get, type Readable, type Writable } from 'svelte/store'
 
 import {
   createDigito,
@@ -74,34 +74,34 @@ export type SvelteOTPOptions = DigitoOptions & {
 
 export type UseOTPResult = {
   /** Subscribe to the full state store. */
-  subscribe:      ReturnType<typeof writable>['subscribe']
+  subscribe:      Writable<DigitoState>['subscribe']
   /** Derived — joined code string. */
-  value:          ReturnType<typeof derived>
+  value:          Readable<string>
   /** Derived — completion boolean. */
-  isComplete:     ReturnType<typeof derived>
+  isComplete:     Readable<boolean>
   /** Derived — error boolean. */
-  hasError:       ReturnType<typeof derived>
+  hasError:       Readable<boolean>
   /** Derived — active slot index. */
-  activeSlot:     ReturnType<typeof derived>
+  activeSlot:     Readable<number>
   /** Remaining timer seconds store. */
-  timerSeconds:   ReturnType<typeof writable>
+  timerSeconds:   Writable<number>
   /** Whether the field is currently disabled. */
-  isDisabled:     ReturnType<typeof writable>
-  /** The separator slot index store. -1 = no separator. */
-  separatorAfter: ReturnType<typeof writable>
+  isDisabled:     Writable<boolean>
+  /** The separator slot index store. */
+  separatorAfter: Writable<number | number[]>
   /** The separator character store. */
-  separator:      ReturnType<typeof writable>
+  separator:      Writable<string>
   /** Whether masked mode is active. When true, templates should render `maskChar` instead of char. */
-  masked:         ReturnType<typeof writable>
+  masked:         Writable<boolean>
   /**
    * The configured mask glyph store. Use in templates instead of a hard-coded `●`:
    * `{$otp.masked && char ? $otp.maskChar : char}`
    */
-  maskChar:       ReturnType<typeof writable>
+  maskChar:       Writable<string>
   /** The placeholder character for empty slots. Empty string when not set. */
   placeholder:    string
-  /** Plain object to spread onto the wrapper element as data attributes for CSS/Tailwind targeting. */
-  wrapperAttrs:   Record<string, string>
+  /** Derived — spread onto the wrapper element as data attributes for CSS/Tailwind targeting. */
+  wrapperAttrs:   Readable<Record<string, string | undefined>>
   /** Svelte action to bind to the single hidden input. */
   action:         (node: HTMLInputElement) => { destroy: () => void }
   /** Returns the current joined code string. */
@@ -443,7 +443,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
   // Derived wrapper data attributes for CSS/Tailwind targeting
   const wrapperAttrs = derived(
     [store, isDisabledStore],
-    ([$s, $dis]: [typeof $s, boolean]) => ({
+    ([$s, $dis]: [DigitoState, boolean]) => ({
       ...($s.isComplete ? { 'data-complete': '' } : {}),
       ...($s.hasError   ? { 'data-invalid':  '' } : {}),
       ...($dis          ? { 'data-disabled': '' } : {}),

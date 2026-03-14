@@ -45,6 +45,7 @@ import {
   createDigito,
   createTimer,
   filterString,
+  formatCountdown,
   type InputType,
 } from '../core/index.js'
 
@@ -207,16 +208,6 @@ const STYLES = `
   .digito-wc-resend-btn:hover    { background: #E5E5E5; }
   .digito-wc-resend-btn:disabled { color: #A1A1A1; cursor: not-allowed; background: #F5F5F5; }
 `
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
-function formatCountdown(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `0:${String(s).padStart(2, '0')}`
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WEB COMPONENT

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] — 2026-03-14
+
+### Added
+
+- `Delete` key support — clears current slot, stays in place, no backward movement
+- `defaultValue` option — uncontrolled pre-fill on mount, plain string, runs once, does not trigger `onComplete`
+- `readOnly` mode — display and copy, no edit, visually and semantically distinct from `disabled`
+- `data-complete`, `data-invalid`, `data-disabled`, `data-readonly` attributes on the wrapper element across all adapters — boolean presence attributes that mirror field state, compatible with Tailwind `data-*` variants and plain CSS attribute selectors
+
+## [1.0.1] — 2026-03-14
+
+### Changed
+
+- Live demo URL updated to `https://digitojs.vercel.app` in README
+
 ## [1.0.0] — 2026-03-14
 
 ### Added

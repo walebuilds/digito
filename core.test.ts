@@ -12,6 +12,7 @@ import {
   filterString,
   createDigito,
   createTimer,
+  formatCountdown,
   triggerHapticFeedback,
   triggerSoundFeedback,
   type InputType,
@@ -2094,5 +2095,75 @@ describe('defaultValue in core initialisation', () => {
     d.cancelPendingComplete()
     expect(d.state.slotValues[3]).toBe('')
     expect(d.state.isComplete).toBe(false)
+  })
+})
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// formatCountdown
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('formatCountdown', () => {
+  it('formats seconds-only values as 0:ss', () => {
+    expect(formatCountdown(0)).toBe('0:00')
+    expect(formatCountdown(9)).toBe('0:09')
+    expect(formatCountdown(30)).toBe('0:30')
+    expect(formatCountdown(59)).toBe('0:59')
+  })
+
+  it('formats values with minutes as m:ss', () => {
+    expect(formatCountdown(60)).toBe('1:00')
+    expect(formatCountdown(65)).toBe('1:05')
+    expect(formatCountdown(90)).toBe('1:30')
+    expect(formatCountdown(120)).toBe('2:00')
+    expect(formatCountdown(125)).toBe('2:05')
+  })
+
+  it('zero-pads the seconds component to two digits', () => {
+    expect(formatCountdown(61)).toBe('1:01')
+    expect(formatCountdown(3600)).toBe('60:00')
+  })
+})
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// notifyCompleteIfReady — haptic / sound / clearTimeout branches
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('notifyCompleteIfReady — coverage branches', () => {
+  beforeEach(() => jest.useFakeTimers())
+  afterEach(()  => jest.useRealTimers())
+
+  it('haptic: false skips triggerHapticFeedback but still fires onComplete', () => {
+    const cb = jest.fn()
+    const d  = createDigito({ length: 4, onComplete: cb, haptic: false })
+    expect(() => {
+      '1234'.split('').forEach((c, i) => d.inputChar(i, c))
+      jest.advanceTimersByTime(10)
+    }).not.toThrow()
+    expect(cb).toHaveBeenCalledWith('1234')
+  })
+
+  it('sound: true does not throw and fires onComplete', () => {
+    const cb = jest.fn()
+    const d  = createDigito({ length: 4, onComplete: cb, sound: true })
+    expect(() => {
+      '1234'.split('').forEach((c, i) => d.inputChar(i, c))
+      jest.advanceTimersByTime(10)
+    }).not.toThrow()
+    expect(cb).toHaveBeenCalledWith('1234')
+  })
+
+  it('rapid re-completion clears the pending timeout and replaces it', () => {
+    const cb = jest.fn()
+    const d  = createDigito({ length: 4, onComplete: cb })
+    '1234'.split('').forEach((c, i) => d.inputChar(i, c))
+    // completeTimeoutId is now set — trigger a second completion before timeout fires
+    d.deleteChar(3)
+    d.inputChar(3, '4')   // re-fills slot 3 → line 116 clearTimeout branch hit
+    jest.advanceTimersByTime(50)
+    // onComplete must fire exactly once with the final code
+    expect(cb).toHaveBeenCalledTimes(1)
+    expect(cb).toHaveBeenCalledWith('1234')
   })
 })

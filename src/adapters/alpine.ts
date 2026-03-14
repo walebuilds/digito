@@ -28,6 +28,7 @@ import {
   createDigito,
   createTimer,
   filterString,
+  formatCountdown,
   type DigitoOptions,
   type InputType,
 } from '../core/index.js'
@@ -94,18 +95,6 @@ type AlpineOTPOptions = DigitoOptions & {
    * @example maskChar: '*'
    */
   maskChar?:       string
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
-function formatCountdown(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return minutes > 0
-    ? `${minutes}:${String(seconds).padStart(2, '0')}`
-    : `0:${String(seconds).padStart(2, '0')}`
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -583,6 +572,30 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
       syncSlotsToDOM()
     })
 
+    // ── Internal helpers (shared by public API methods below) ─────────────────
+
+    /** Tears down running timers and removes built-in footer elements from the DOM. */
+    function teardown(): void {
+      mainCountdown?.stop()
+      resendCountdown?.stop()
+      builtInFooterEl?.remove()
+      builtInResendRowEl?.remove()
+    }
+
+    /** Resets slot state, restarts timers, and restores focus — shared by reset() and resend(). */
+    function doReset(): void {
+      digito.resetState()
+      hiddenInputEl.value = ''
+      if (timerBadgeEl)       timerBadgeEl.textContent = formatCountdown(timerSecs)
+      if (builtInFooterEl)    builtInFooterEl.style.display    = 'flex'
+      if (builtInResendRowEl) builtInResendRowEl.classList.remove('is-visible')
+      resendCountdown?.stop()
+      mainCountdown?.restart()
+      if (!isDisabled) hiddenInputEl.focus()
+      hiddenInputEl.setSelectionRange(0, 0)
+      syncSlotsToDOM()
+    }
+
     // ── Public API on element ──────────────────────────────────────────────────
     // Exposed on `el._digito` for programmatic control from Alpine components or
     // external JavaScript. Mirrors the DigitoInstance interface from the vanilla adapter.
@@ -591,41 +604,13 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
       getCode:  () => digito.getCode(),
 
       /** Stop timers and remove built-in footer elements. Call before removing the element. */
-      destroy: () => {
-        mainCountdown?.stop()
-        resendCountdown?.stop()
-        builtInFooterEl?.remove()
-        builtInResendRowEl?.remove()
-      },
+      destroy: () => teardown(),
 
       /** Clear all slots, re-focus, reset to idle state, and restart the built-in timer. */
-      reset: () => {
-        digito.resetState()
-        hiddenInputEl.value = ''
-        if (timerBadgeEl)       timerBadgeEl.textContent = formatCountdown(timerSecs)
-        if (builtInFooterEl)    builtInFooterEl.style.display    = 'flex'
-        if (builtInResendRowEl) builtInResendRowEl.classList.remove('is-visible')
-        resendCountdown?.stop()
-        mainCountdown?.restart()
-        if (!isDisabled) hiddenInputEl.focus()
-        hiddenInputEl.setSelectionRange(0, 0)
-        syncSlotsToDOM()
-      },
+      reset: () => doReset(),
 
       /** Reset and fire the `onResend` callback. */
-      resend: () => {
-        digito.resetState()
-        hiddenInputEl.value = ''
-        if (timerBadgeEl)       timerBadgeEl.textContent = formatCountdown(timerSecs)
-        if (builtInFooterEl)    builtInFooterEl.style.display    = 'flex'
-        if (builtInResendRowEl) builtInResendRowEl.classList.remove('is-visible')
-        resendCountdown?.stop()
-        mainCountdown?.restart()
-        if (!isDisabled) hiddenInputEl.focus()
-        hiddenInputEl.setSelectionRange(0, 0)
-        syncSlotsToDOM()
-        onResend?.()
-      },
+      resend: () => { doReset(); onResend?.() },
 
       /** Apply or clear the error state on all visual slots. */
       setError: (isError: boolean) => {
@@ -681,10 +666,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
     return {
       /** Alpine calls this when the component is destroyed. Stops timers and removes footer elements. */
       cleanup() {
-        mainCountdown?.stop()
-        resendCountdown?.stop()
-        builtInFooterEl?.remove()
-        builtInResendRowEl?.remove()
+        teardown()
         digito.resetState()
       },
     }

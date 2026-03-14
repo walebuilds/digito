@@ -11,6 +11,6 @@
 
 export type { InputType, DigitoState, DigitoOptions, TimerOptions, TimerControls, StateListener } from './types.js'
 export { filterChar, filterString }                from './filter.js'
-export { createTimer }                             from './timer.js'
+export { createTimer, formatCountdown }            from './timer.js'
 export { triggerHapticFeedback, triggerSoundFeedback } from './feedback.js'
 export { createDigito }                            from './machine.js'

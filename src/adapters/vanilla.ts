@@ -36,6 +36,7 @@ import {
   createDigito,
   createTimer,
   filterString,
+  formatCountdown,
   type DigitoOptions,
   type InputType,
 } from '../core/index.js'
@@ -89,7 +90,7 @@ const INJECTED_STYLE_ID = 'digito-styles'
  *   --digito-bg-filled         Slot background when filled  (default: #FFFFFF)
  *   --digito-color             Digit text colour            (default: #0A0A0A)
  *   --digito-border-color      Default slot border          (default: #E5E5E5)
- *   --digito-active-color      Active slot border + ring    (default: #757575)
+ *   --digito-active-color      Active slot border + ring    (default: #3D3D3D)
  *   --digito-error-color       Error border, ring + badge   (default: #FB2C36)
  *   --digito-success-color     Success border + ring        (default: #00C950)
  *   --digito-timer-color       Timer label text colour      (default: #5C5C5C)
@@ -743,19 +744,6 @@ function mountOnWrapper(
   }
 
   return { reset, resend, setError, setSuccess, setDisabled, getCode, focus, destroy }
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
-function formatCountdown(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return minutes > 0
-    ? `${minutes}:${String(seconds).padStart(2, '0')}`
-    : `0:${String(seconds).padStart(2, '0')}`
 }
 
 

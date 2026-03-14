@@ -50,6 +50,9 @@ The core is a **pure state machine** with no DOM or framework dependencies, wrap
 - **`onComplete` deferral** — fires after DOM sync; cancellable without clearing slot values
 - **Native form support** — `name` option wires the hidden input into `<form>` / `FormData`
 - **Fully accessible** — single ARIA-labelled input, `inputMode`, `autocomplete="one-time-code"`, all visual elements `aria-hidden`
+- **`readOnly` mode** — field stays focusable and copyable but blocks all mutations; semantically distinct from `disabled`
+- **`defaultValue`** — uncontrolled pre-fill applied once on mount without triggering `onComplete`
+- **Data attribute state hooks** — `data-complete`, `data-invalid`, `data-disabled`, `data-readonly` set on the wrapper across all adapters for Tailwind `data-*` variant and plain CSS attribute styling
 - **CDN-ready** — two IIFE bundles for no-build usage
 
 ---
@@ -68,6 +71,8 @@ The core is a **pure state machine** with no DOM or framework dependencies, wrap
 | Haptic + sound feedback | ✅ | ✗ | ✗ |
 | `blurOnComplete` (auto-advance) | ✅ | ✗ | ✗ |
 | `onInvalidChar` callback | ✅ | ✗ | ✗ |
+| `readOnly` mode (focusable, no mutations) | ✅ | ✗ | ✗ |
+| Data attribute state hooks | ✅ | ✗ | ✗ |
 | Vanilla JS | ✅ | ✗ | ✗ |
 | Vue | ✅ | ✗ | ✗ |
 | Svelte | ✅ | ✗ | ✗ |
@@ -123,6 +128,8 @@ yarn add digitojs
 
 Digito injects the slot inputs, styles, countdown badge, and resend button automatically. Nothing else to configure.
 
+> **Note:** `verify(code)`, `sendOTP()`, and similar functions used throughout the examples are placeholder names — replace them with your own API calls or application logic.
+
 ---
 
 ## Usage
@@ -140,6 +147,8 @@ Digito injects the slot inputs, styles, countdown badge, and resend button autom
 | Native form submission | `name: 'otp_code'` |
 | Async verification with lock | `setDisabled(true/false)` around API call |
 | Auto-advance after entry | `blurOnComplete: true` |
+| Pre-fill on mount (uncontrolled) | `defaultValue: '123456'` |
+| Display-only / read-only field | `readOnly: true` |
 
 ---
 
@@ -197,7 +206,7 @@ export function OTPInput() {
   })
 
   return (
-    <div style={{ position: 'relative', display: 'inline-flex', gap: 10 }}>
+    <div {...otp.wrapperProps} style={{ position: 'relative', display: 'inline-flex', gap: 10 }}>
       <HiddenOTPInput {...otp.hiddenInputProps} />
 
       {otp.slotValues.map((_, i) => {
@@ -241,7 +250,7 @@ const otp = useOTP({ length: 6, onComplete: (code) => verify(code) })
 </script>
 
 <template>
-  <div style="position: relative; display: inline-flex; gap: 10px">
+  <div v-bind="otp.wrapperAttrs.value" style="position: relative; display: inline-flex; gap: 10px">
     <input
       :ref="(el) => (otp.inputRef.value = el as HTMLInputElement)"
       v-bind="otp.hiddenInputAttrs"
@@ -252,18 +261,22 @@ const otp = useOTP({ length: 6, onComplete: (code) => verify(code) })
       @focus="otp.onFocus"
       @blur="otp.onBlur"
     />
-    <div
-      v-for="(char, i) in otp.slotValues.value"
-      :key="i"
-      class="slot"
-      :class="{
-        'is-active':  i === otp.activeSlot.value && otp.isFocused.value,
-        'is-filled':  !!char,
-        'is-error':   otp.hasError.value,
-      }"
-    >
-      {{ char }}
-    </div>
+    <template v-for="(char, i) in otp.slotValues.value" :key="i">
+      <span
+        v-if="otp.separatorAfter.value && i === otp.separatorAfter.value"
+        aria-hidden="true"
+      >{{ otp.separator.value }}</span>
+      <div
+        class="slot"
+        :class="{
+          'is-active':  i === otp.activeSlot.value && otp.isFocused.value,
+          'is-filled':  !!char,
+          'is-error':   otp.hasError.value,
+        }"
+      >
+        {{ char || otp.placeholder }}
+      </div>
+    </template>
   </div>
 </template>
 ```
@@ -287,20 +300,23 @@ code.value = ''  // resets the field reactively
   const otp = useOTP({ length: 6, onComplete: (code) => verify(code) })
 </script>
 
-<div style="position: relative; display: inline-flex; gap: 10px">
+<div {...$otp.wrapperAttrs} style="position: relative; display: inline-flex; gap: 10px">
   <input
     use:otp.action
     style="position: absolute; inset: 0; opacity: 0; z-index: 1"
   />
 
   {#each $otp.slotValues as char, i}
+    {#if $otp.separatorAfter && i === $otp.separatorAfter}
+      <span aria-hidden="true">{$otp.separator}</span>
+    {/if}
     <div
       class="slot"
       class:is-active={i === $otp.activeSlot}
       class:is-filled={!!char}
       class:is-error={$otp.hasError}
     >
-      {char}
+      {char || otp.placeholder}
     </div>
   {/each}
 </div>
@@ -414,6 +430,7 @@ const otp = useOTP(options)
 | Property | Type | Description |
 |---|---|---|
 | `hiddenInputProps` | `object` | Spread onto the `<input>` or use `<HiddenOTPInput>` |
+| `wrapperProps` | `object` | Spread onto the wrapper `<div>` — carries `data-*` state attributes |
 | `slotValues` | `string[]` | Current character per slot (`''` = empty) |
 | `activeSlot` | `number` | Zero-based index of the focused slot |
 | `isComplete` | `boolean` | All slots filled |
@@ -421,12 +438,16 @@ const otp = useOTP(options)
 | `isDisabled` | `boolean` | Disabled state active |
 | `isFocused` | `boolean` | Hidden input has browser focus |
 | `timerSeconds` | `number` | Remaining countdown seconds |
+| `separatorAfter` | `number \| number[]` | Separator position(s) for JSX rendering |
+| `separator` | `string` | Separator character to render |
 | `getSlotProps(i)` | `(number) => SlotRenderProps` | Full render metadata for slot `i` |
 | `getCode()` | `() => string` | Joined code string |
 | `reset()` | `() => void` | Clear all slots, restart timer |
 | `setError(bool)` | `(boolean) => void` | Toggle error state |
-| `setDisabled(bool)` | `(boolean) => void` | Toggle disabled state |
 | `focus(i)` | `(number) => void` | Move focus to slot |
+
+> **Note:** React does not expose a `setDisabled()` method. Pass `disabled` as an option prop instead — update it via your component's state (e.g. `const [isVerifying, setIsVerifying] = useState(false)` → `useOTP({ disabled: isVerifying })`).
+
 
 **`SlotRenderProps`** (from `getSlotProps(i)`):
 
@@ -460,7 +481,8 @@ const otp = useOTP(options)
 
 | Property | Type | Description |
 |---|---|---|
-| `hiddenInputAttrs` | `object` | Bind with `v-bind` |
+| `hiddenInputAttrs` | `object` | Bind with `v-bind` on the hidden `<input>` |
+| `wrapperAttrs` | `Ref<object>` | Bind with `v-bind` on the wrapper element — carries `data-*` state attributes |
 | `inputRef` | `Ref<HTMLInputElement \| null>` | Bind with `:ref` |
 | `slotValues` | `Ref<string[]>` | Current slot values |
 | `activeSlot` | `Ref<number>` | Focused slot index |
@@ -472,6 +494,9 @@ const otp = useOTP(options)
 | `isDisabled` | `Ref<boolean>` | Disabled state active |
 | `masked` | `Ref<boolean>` | Masked mode active |
 | `maskChar` | `Ref<string>` | Configured mask glyph |
+| `separatorAfter` | `Ref<number \| number[]>` | Separator position(s) for template rendering |
+| `separator` | `Ref<string>` | Separator character to render |
+| `placeholder` | `string` | Placeholder character for empty slots |
 | `onKeydown` | handler | Bind with `@keydown` |
 | `onChange` | handler | Bind with `@input` |
 | `onPaste` | handler | Bind with `@paste` |
@@ -499,12 +524,16 @@ const otp = useOTP(options)
 |---|---|---|
 | `subscribe` | Store | Subscribe to full OTP state |
 | `action` | Svelte action | Use with `use:otp.action` on the hidden `<input>` |
+| `wrapperAttrs` | `Readable<object>` | Spread with `{...$otp.wrapperAttrs}` on wrapper — carries `data-*` state attributes |
 | `value` | Derived store | Joined code string |
 | `isComplete` | Derived store | All slots filled |
 | `hasError` | Derived store | Error state |
 | `activeSlot` | Derived store | Focused slot index |
 | `timerSeconds` | Writable store | Remaining countdown |
 | `masked` | Writable store | Masked mode |
+| `separatorAfter` | Writable store | Separator position(s) for template rendering |
+| `separator` | Writable store | Separator character to render |
+| `placeholder` | `string` | Placeholder character for empty slots |
 | `getCode()` | `() => string` | Joined code |
 | `reset()` | `() => void` | Clear and reset |
 | `setError(bool)` | `(boolean) => void` | Toggle error |
@@ -535,6 +564,8 @@ otp.moveFocusTo(index)
 otp.setError(bool)
 otp.resetState()
 otp.setDisabled(bool)
+otp.setReadOnly(bool)        // toggle readOnly at runtime
+otp.clearSlot(slotIndex)     // clear slot in place (Delete key semantics)
 otp.cancelPendingComplete()  // cancel onComplete without clearing slots
 
 // Query
@@ -586,6 +617,20 @@ filterString('84AB91', 'numeric')   // → '8491'
 
 ---
 
+### `formatCountdown(totalSeconds)` — Utility
+
+Formats a second count as a `m:ss` string. Used internally by the built-in timer UI; exported for custom timer displays.
+
+```ts
+import { formatCountdown } from 'digitojs/core'
+
+formatCountdown(65)   // → "1:05"
+formatCountdown(30)   // → "0:30"
+formatCountdown(9)    // → "0:09"
+```
+
+---
+
 ## Configuration Options
 
 All options are accepted by every adapter unless otherwise noted.
@@ -616,6 +661,8 @@ All options are accepted by every adapter unless otherwise noted.
 | `separatorAfter` | `number \| number[]` | — | 1-based slot index/indices to insert a visual separator after |
 | `separator` | `string` | `'—'` | Separator character to render |
 | `disabled` | `boolean` | `false` | Disable all input on mount |
+| `readOnly` | `boolean` | `false` | Block mutations while keeping the field focusable and copyable |
+| `defaultValue` | `string` | — | Uncontrolled pre-fill applied once on mount; does not trigger `onComplete` |
 | `haptic` | `boolean` | `true` | `navigator.vibrate(10)` on completion and error |
 | `sound` | `boolean` | `false` | Play 880 Hz tone via Web Audio on completion |
 
@@ -630,27 +677,28 @@ Set on `.digito-wrapper` (vanilla) or `digito-input` (web component) to theme th
 ```css
 .digito-wrapper {
   /* Dimensions */
-  --digito-size:          56px;     /* slot width + height    */
-  --digito-gap:           12px;     /* gap between slots      */
-  --digito-radius:        10px;     /* slot border radius     */
-  --digito-font-size:     24px;     /* digit font size        */
+  --digito-size:          56px;             /* slot width + height    */
+  --digito-gap:           12px;             /* gap between slots      */
+  --digito-radius:        10px;             /* slot border radius     */
+  --digito-font-size:     24px;             /* digit font size        */
 
   /* Colors */
-  --digito-color:         #0A0A0A;  /* digit text color       */
-  --digito-bg:            #FAFAFA;  /* empty slot background  */
-  --digito-bg-filled:     #FFFFFF;  /* filled slot background */
-  --digito-border-color:  #E5E5E5;  /* default slot border    */
-  --digito-active-color:  #3D3D3D;  /* active border + ring   */
-  --digito-error-color:   #FB2C36;  /* error border + ring    */
-  --digito-success-color: #00C950;  /* success border + ring  */
-  --digito-caret-color:   #3D3D3D;  /* fake caret color       */
-  --digito-timer-color:   #5C5C5C;  /* footer text            */
+  --digito-color:         #0A0A0A;        /* digit text color       */
+  --digito-bg:            #FAFAFA;        /* empty slot background  */
+  --digito-bg-filled:     #FFFFFF;        /* filled slot background */
+  --digito-border-color:  #E5E5E5;        /* default slot border    */
+  --digito-active-color:  #3D3D3D;        /* active border + ring   */
+  --digito-error-color:   #FB2C36;        /* error border + ring    */
+  --digito-success-color: #00C950;        /* success border + ring  */
+  --digito-caret-color:   #3D3D3D;        /* fake caret color       */
+  --digito-timer-color:   #5C5C5C;        /* footer text            */
 
-  /* Placeholder & separator */
-  --digito-placeholder-color: #D3D3D3;
-  --digito-placeholder-size:  16px;
-  --digito-separator-color:   #A1A1A1;
-  --digito-separator-size:    18px;
+  /* Placeholder, separator & mask */
+  --digito-placeholder-color: #D3D3D3;    /* placeholder glyph color */
+  --digito-placeholder-size:  16px;         /* placeholder glyph size  */
+  --digito-separator-color:   #A1A1A1;    /* separator text color    */
+  --digito-separator-size:    18px;         /* separator font size     */
+  --digito-masked-size:       16px;         /* mask glyph font size    */
 }
 ```
 
@@ -663,12 +711,35 @@ Set on `.digito-wrapper` (vanilla) or `digito-input` (web component) to theme th
 | `.digito-slot.is-filled` | Slot contains a character |
 | `.digito-slot.is-error` | Error state is active |
 | `.digito-slot.is-success` | Success state is active |
+| `.digito-slot.is-disabled` | Field is disabled |
 | `.digito-caret` | The blinking caret inside the active empty slot |
 | `.digito-timer` | The "Code expires in…" countdown row |
 | `.digito-timer-badge` | The red pill countdown badge |
 | `.digito-resend` | The "Didn't receive the code?" resend row |
 | `.digito-resend-btn` | The resend chip button |
 | `.digito-separator` | The visual separator between slot groups |
+
+### Data Attribute State Hooks
+
+All adapters set boolean presence attributes on the wrapper element that mirror the current field state — no extra JS needed. Works with Tailwind `data-*` variants and plain CSS attribute selectors.
+
+| Attribute | Set when |
+|---|---|
+| `data-complete` | All slots are filled |
+| `data-invalid` | Error state is active |
+| `data-disabled` | Field is disabled |
+| `data-readonly` | Field is in read-only mode |
+
+```css
+/* Plain CSS */
+.digito-wrapper[data-complete] { border-color: var(--digito-success-color); }
+.digito-wrapper[data-invalid]  { animation: shake 0.2s; }
+```
+
+```html
+<!-- Tailwind -->
+<div class="digito-wrapper data-[complete]:ring-green-500 data-[invalid]:ring-red-500"></div>
+```
 
 ---
 
@@ -684,7 +755,7 @@ Digito is built with accessibility as a first-class concern:
 - **`maxLength`** — constrains native input to `length`.
 - **`type="password"` in masked mode** — triggers the OS password keyboard on mobile.
 - **Native form integration** — the `name` option wires the hidden input into `<form>` and `FormData`, compatible with any form submission approach.
-- **Keyboard navigation** — full keyboard support (`←`, `→`, `Backspace`, `Tab`). No mouse required.
+- **Keyboard navigation** — full keyboard support (`←`, `→`, `Backspace`, `Delete`, `Tab`). No mouse required.
 
 ---
 
@@ -694,6 +765,7 @@ Digito is built with accessibility as a first-class concern:
 |---|---|
 | `0–9` / `a–z` / `A–Z` | Fill current slot and advance focus |
 | `Backspace` | Clear current slot; step back if already empty |
+| `Delete` | Clear current slot; focus stays in place |
 | `←` | Move focus one slot left |
 | `→` | Move focus one slot right |
 | `Cmd/Ctrl+V` | Smart paste from cursor slot, wrapping if needed |
@@ -732,7 +804,7 @@ Digito is built with accessibility as a first-class concern:
 
 ```
 digitojs                → Vanilla JS adapter + core utilities
-digitojs/core           → createDigito, createTimer, filterChar, filterString (no DOM)
+digitojs/core           → createDigito, createTimer, formatCountdown, filterChar, filterString (no DOM)
 digitojs/react          → useOTP hook + HiddenOTPInput + SlotRenderProps
 digitojs/vue            → useOTP composable
 digitojs/svelte         → useOTP store + action
@@ -744,6 +816,7 @@ All exports are fully typed. Core utilities are also available from the main ent
 
 ```ts
 import { createDigito, createTimer, filterChar, filterString } from 'digitojs'
+import { formatCountdown } from 'digitojs/core'
 ```
 
 ---

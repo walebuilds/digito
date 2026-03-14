@@ -6,7 +6,6 @@
  *
  * @author  Olawale Balo — Product Designer + Design Engineer
  * @license MIT
- * @version 1.0.0
  */
 
 // Core — pure logic, zero DOM
