@@ -73,6 +73,8 @@ export function createDigito(options: DigitoOptions = {}) {
   // requiring the instance to be recreated. Adapters that pass disabled at
   // construction time still work — the initial value is honoured.
   let disabled = options.disabled ?? false
+  // `readOnly` allows focus/navigation while blocking all slot mutations.
+  let readOnly = options.readOnly ?? false
 
   let state: DigitoState = {
     slotValues:   Array(length).fill('') as string[],
@@ -140,7 +142,7 @@ export function createDigito(options: DigitoOptions = {}) {
    * Out-of-bounds indices are silently ignored to prevent sparse-array corruption.
    */
   function inputChar(slotIndex: number, char: string): DigitoState {
-    if (disabled) return state
+    if (disabled || readOnly) return state
     if (slotIndex < 0 || slotIndex >= length) return state
     const validChar = filterChar(char, type, pattern)
     if (!validChar) {
@@ -176,7 +178,7 @@ export function createDigito(options: DigitoOptions = {}) {
    * Clears the current slot if filled, otherwise clears the previous slot and moves back.
    */
   function deleteChar(slotIndex: number): DigitoState {
-    if (disabled) return state
+    if (disabled || readOnly) return state
     if (slotIndex < 0 || slotIndex >= length) return state
     const slotValues = [...state.slotValues]
 
@@ -210,7 +212,7 @@ export function createDigito(options: DigitoOptions = {}) {
    *   paste(0, '84AB91') → filtered='8491', fills slots 0–3, slots 4–5 unchanged
    */
   function pasteString(cursorSlot: number, rawText: string): DigitoState {
-    if (disabled) return state
+    if (disabled || readOnly) return state
 
     let transformed: string
     try {
@@ -261,6 +263,20 @@ export function createDigito(options: DigitoOptions = {}) {
     return newState
   }
 
+  /**
+   * Clear the slot at slotIndex without moving focus.
+   * Used by the Delete key — differs from deleteChar (backspace) which steps the cursor back.
+   * Returns early when the slot is already empty, the field is disabled, or readOnly.
+   */
+  function clearSlot(slotIndex: number): DigitoState {
+    if (disabled || readOnly) return state
+    if (slotIndex < 0 || slotIndex >= length) return state
+    if (!state.slotValues[slotIndex]) return state
+    const slotValues = [...state.slotValues]
+    slotValues[slotIndex] = ''
+    return applyState({ slotValues, activeSlot: slotIndex, isComplete: false })
+  }
+
   /** Set or clear the error state. Triggers haptic feedback when setting. */
   function setError(isError: boolean): DigitoState {
     if (isError && haptic) triggerHapticFeedback()
@@ -300,6 +316,14 @@ export function createDigito(options: DigitoOptions = {}) {
   }
 
   /**
+   * Toggle readOnly at runtime. When `true`, all slot mutations are blocked
+   * but navigation and focus remain fully functional.
+   */
+  function setReadOnly(value: boolean): void {
+    readOnly = value
+  }
+
+  /**
    * Subscribe to state changes. The listener is called after every mutation
    * with a shallow copy of the new state.
    *
@@ -325,6 +349,7 @@ export function createDigito(options: DigitoOptions = {}) {
     // Input actions
     inputChar,
     deleteChar,
+    clearSlot,
     moveFocusLeft,
     moveFocusRight,
     pasteString,
@@ -347,6 +372,9 @@ export function createDigito(options: DigitoOptions = {}) {
      * Navigation actions are always allowed.
      */
     setDisabled,
+
+    /** Toggle readOnly at runtime. Blocks mutations, preserves navigation. */
+    setReadOnly,
 
     /** Returns the current joined code string. */
     getCode:     () => joinSlots(state.slotValues),
