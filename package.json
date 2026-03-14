@@ -1,5 +1,5 @@
 {
-  "name": "digito",
+  "name": "digitojs",
   "version": "1.0.0",
   "description": "The only framework-agnostic OTP input state machine powering React, Vue, Svelte, Alpine, Vanilla JS, and Web Components from a single core.",
   "main": "dist/index.js",

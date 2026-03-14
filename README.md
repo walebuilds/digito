@@ -14,8 +14,8 @@
 
 <p align="center">
   <a href="https://usedigito.vercel.app"><img src="https://img.shields.io/badge/usedigito.vercel.app-0A0A0A?style=flat-square&logo=vercel&logoColor=white" alt="Live demo" /></a>
-  <a href="https://www.npmjs.com/package/digito"><img src="https://img.shields.io/npm/v/digito?style=flat-square&color=0A0A0A" alt="npm" /></a>
-  <a href="https://bundlephobia.com/package/digito"><img src="https://img.shields.io/bundlephobia/minzip/digito?style=flat-square&color=0A0A0A&label=gzip" /></a>
+  <a href="https://www.npmjs.com/package/digitojs"><img src="https://img.shields.io/npm/v/digitojs?style=flat-square&color=0A0A0A" alt="npm" /></a>
+  <a href="https://bundlephobia.com/package/digitojs"><img src="https://img.shields.io/bundlephobia/minzip/digitojs?style=flat-square&color=0A0A0A&label=gzip" /></a>
   <img src="https://img.shields.io/badge/zero_dependencies-0A0A0A?style=flat-square" />
   <img src="https://img.shields.io/badge/TypeScript-0A0A0A?style=flat-square&logo=typescript&logoColor=white" />
 </p>
@@ -85,21 +85,21 @@ The core is a **pure state machine** with no DOM or framework dependencies, wrap
 ## Installation
 
 ```bash
-npm i digito
+npm i digitojs
 # or
-pnpm add digito
+pnpm add digitojs
 # or
-yarn add digito
+yarn add digitojs
 ```
 
 **CDN (no build step):**
 
 ```html
 <!-- Vanilla JS — window.Digito global -->
-<script src="https://unpkg.com/digito/dist/digito.min.js"></script>
+<script src="https://unpkg.com/digitojs/dist/digito.min.js"></script>
 
 <!-- Web Component — auto-registers <digito-input> -->
-<script src="https://unpkg.com/digito/dist/digito-wc.min.js"></script>
+<script src="https://unpkg.com/digitojs/dist/digito-wc.min.js"></script>
 ```
 
 ---
@@ -112,7 +112,7 @@ yarn add digito
 <div class="digito-wrapper" data-length="6" data-timer="60"></div>
 
 <script type="module">
-  import { initDigito } from 'digito'
+  import { initDigito } from 'digitojs'
 
   const [otp] = initDigito('.digito-wrapper', {
     onComplete: (code) => console.log('Code:', code),
@@ -155,7 +155,7 @@ Digito injects the slot inputs, styles, countdown badge, and resend button autom
 ></div>
 
 <script type="module">
-  import { initDigito } from 'digito'
+  import { initDigito } from 'digitojs'
 
   const [otp] = initDigito('.digito-wrapper', {
     onComplete: (code) => verify(code),
@@ -188,7 +188,7 @@ const [otp] = initDigito('.digito-wrapper', {
 ### React
 
 ```tsx
-import { useOTP, HiddenOTPInput } from 'digito/react'
+import { useOTP, HiddenOTPInput } from 'digitojs/react'
 
 export function OTPInput() {
   const otp = useOTP({
@@ -235,7 +235,7 @@ const otp = useOTP({ length: 6, value: code, onChange: setCode })
 
 ```vue
 <script setup lang="ts">
-import { useOTP } from 'digito/vue'
+import { useOTP } from 'digitojs/vue'
 
 const otp = useOTP({ length: 6, onComplete: (code) => verify(code) })
 </script>
@@ -282,7 +282,7 @@ code.value = ''  // resets the field reactively
 
 ```svelte
 <script>
-  import { useOTP } from 'digito/svelte'
+  import { useOTP } from 'digitojs/svelte'
 
   const otp = useOTP({ length: 6, onComplete: (code) => verify(code) })
 </script>
@@ -312,7 +312,7 @@ code.value = ''  // resets the field reactively
 
 ```js
 import Alpine from 'alpinejs'
-import { DigitoAlpine } from 'digito/alpine'
+import { DigitoAlpine } from 'digitojs/alpine'
 
 Alpine.plugin(DigitoAlpine)
 Alpine.start()
@@ -341,7 +341,7 @@ el._digito.reset()
 ### Web Component
 
 ```js
-import 'digito/web-component'
+import 'digitojs/web-component'
 ```
 
 ```html
@@ -405,7 +405,7 @@ initDigito(target?: string | HTMLElement | HTMLElement[], options?: VanillaOptio
 ### `useOTP(options)` — React
 
 ```ts
-import { useOTP, HiddenOTPInput } from 'digito/react'
+import { useOTP, HiddenOTPInput } from 'digitojs/react'
 const otp = useOTP(options)
 ```
 
@@ -452,7 +452,7 @@ const otp = useOTP(options)
 ### `useOTP(options)` — Vue 3
 
 ```ts
-import { useOTP } from 'digito/vue'
+import { useOTP } from 'digitojs/vue'
 const otp = useOTP(options)
 ```
 
@@ -489,7 +489,7 @@ const otp = useOTP(options)
 ### `useOTP(options)` — Svelte
 
 ```ts
-import { useOTP } from 'digito/svelte'
+import { useOTP } from 'digitojs/svelte'
 const otp = useOTP(options)
 ```
 
@@ -519,7 +519,7 @@ const otp = useOTP(options)
 Pure state machine with no DOM or framework dependency.
 
 ```ts
-import { createDigito } from 'digito/core'
+import { createDigito } from 'digitojs'
 
 const otp = createDigito({ length: 6, type: 'numeric' })
 
@@ -553,7 +553,7 @@ unsub()
 ### `createTimer(options)` — Standalone
 
 ```ts
-import { createTimer } from 'digito'
+import { createTimer } from 'digitojs'
 
 const timer = createTimer({
   totalSeconds: 60,
@@ -574,7 +574,7 @@ If `totalSeconds <= 0`, `onExpire` fires immediately on `start()`. `start()` is 
 ### `filterChar` / `filterString` — Utilities
 
 ```ts
-import { filterChar, filterString } from 'digito'
+import { filterChar, filterString } from 'digitojs'
 
 filterChar('A', 'numeric')          // → '' (rejected)
 filterChar('5', 'numeric')          // → '5'
@@ -731,19 +731,19 @@ Digito is built with accessibility as a first-class concern:
 ## Package Exports
 
 ```
-digito                → Vanilla JS adapter + core utilities
-digito/core           → createDigito, createTimer, filterChar, filterString (no DOM)
-digito/react          → useOTP hook + HiddenOTPInput + SlotRenderProps
-digito/vue            → useOTP composable
-digito/svelte         → useOTP store + action
-digito/alpine         → DigitoAlpine plugin
-digito/web-component  → <digito-input> custom element
+digitojs                → Vanilla JS adapter + core utilities
+digitojs/core           → createDigito, createTimer, filterChar, filterString (no DOM)
+digitojs/react          → useOTP hook + HiddenOTPInput + SlotRenderProps
+digitojs/vue            → useOTP composable
+digitojs/svelte         → useOTP store + action
+digitojs/alpine         → DigitoAlpine plugin
+digitojs/web-component  → <digito-input> custom element
 ```
 
 All exports are fully typed. Core utilities are also available from the main entry:
 
 ```ts
-import { createDigito, createTimer, filterChar, filterString } from 'digito'
+import { createDigito, createTimer, filterChar, filterString } from 'digitojs'
 ```
 
 ---
