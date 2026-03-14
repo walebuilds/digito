@@ -128,6 +128,20 @@ export type DigitoOptions = {
    */
   blurOnComplete?: boolean
   /**
+   * Uncontrolled initial value applied once on mount.
+   * Distributed across slots exactly like user input but does NOT trigger
+   * `onComplete` or fire change events. Ignored when a `value` prop is present.
+   * Default: `undefined` (no pre-fill).
+   */
+  defaultValue?: string
+  /**
+   * When `true`, all slot mutations (typing, backspace, delete, paste) are
+   * blocked while focus, selection, arrow navigation, and copy remain allowed.
+   * Semantically distinct from `disabled` — the field is readable and focusable.
+   * Default: `false`.
+   */
+  readOnly?: boolean
+  /**
    * Called when the user types or pastes a character that is rejected by the
    * current `type` or `pattern` filter.
    *
