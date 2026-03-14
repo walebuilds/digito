@@ -1971,3 +1971,128 @@ describe('triggerSoundFeedback', () => {
     ;(global as Record<string, unknown>).AudioContext = originalAudioContext
   })
 })
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NEW FEATURES — clearSlot (Delete key), defaultValue, readOnly, data attributes
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('clearSlot — Delete key semantics', () => {
+  it('clears the focused slot and keeps activeSlot unchanged', () => {
+    const d = createDigito({ length: 4 })
+    d.inputChar(0, '1')
+    d.inputChar(1, '2')
+    d.moveFocusTo(1)
+    d.clearSlot(1)
+    expect(d.state.slotValues[1]).toBe('')
+    expect(d.state.activeSlot).toBe(1)
+  })
+
+  it('does nothing when the slot is already empty', () => {
+    const d = createDigito({ length: 4 })
+    const before = { ...d.state }
+    d.clearSlot(0)
+    expect(d.state.slotValues[0]).toBe('')
+    expect(d.state.activeSlot).toBe(before.activeSlot)
+  })
+
+  it('sets isComplete to false when a filled slot is cleared', () => {
+    const d = createDigito({ length: 4 })
+    '1234'.split('').forEach((c, i) => d.inputChar(i, c))
+    expect(d.state.isComplete).toBe(true)
+    d.clearSlot(2)
+    expect(d.state.isComplete).toBe(false)
+  })
+
+  it('is silently ignored when disabled', () => {
+    const d = createDigito({ length: 4, disabled: true })
+    d.inputChar(0, '1') // blocked by disabled, but set up via direct mutation for test
+    const before = d.state.slotValues.join('')
+    d.clearSlot(0)
+    expect(d.state.slotValues.join('')).toBe(before)
+  })
+
+  it('is silently ignored when readOnly', () => {
+    const d = createDigito({ length: 4 })
+    // Pre-fill by temporarily disabling readOnly guard
+    d.inputChar(0, '1')
+    d.setReadOnly(true)
+    d.clearSlot(0)
+    expect(d.state.slotValues[0]).toBe('1')
+  })
+
+  it('ignores out-of-bounds indices', () => {
+    const d = createDigito({ length: 4 })
+    expect(() => d.clearSlot(-1)).not.toThrow()
+    expect(() => d.clearSlot(99)).not.toThrow()
+  })
+})
+
+
+describe('readOnly mode', () => {
+  it('blocks inputChar', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    d.inputChar(0, '1')
+    expect(d.state.slotValues[0]).toBe('')
+  })
+
+  it('blocks deleteChar', () => {
+    const d = createDigito({ length: 4 })
+    d.inputChar(0, '5')
+    d.setReadOnly(true)
+    d.deleteChar(0)
+    expect(d.state.slotValues[0]).toBe('5')
+  })
+
+  it('blocks pasteString', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    d.pasteString(0, '1234')
+    expect(d.state.slotValues.join('')).toBe('')
+  })
+
+  it('blocks clearSlot', () => {
+    const d = createDigito({ length: 4 })
+    d.inputChar(0, '7')
+    d.setReadOnly(true)
+    d.clearSlot(0)
+    expect(d.state.slotValues[0]).toBe('7')
+  })
+
+  it('allows moveFocusLeft/Right/To', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    d.moveFocusRight(0)
+    expect(d.state.activeSlot).toBe(1)
+    d.moveFocusLeft(1)
+    expect(d.state.activeSlot).toBe(0)
+    d.moveFocusTo(3)
+    expect(d.state.activeSlot).toBe(3)
+  })
+
+  it('setReadOnly(false) re-enables mutations', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    d.setReadOnly(false)
+    d.inputChar(0, '9')
+    expect(d.state.slotValues[0]).toBe('9')
+  })
+})
+
+
+describe('defaultValue in core initialisation', () => {
+  it('pre-fills slots via inputChar without triggering onComplete', () => {
+    let fired = false
+    const d = createDigito({ length: 4, onComplete: () => { fired = true } })
+    // Simulate what adapters do: fill via inputChar then cancel
+    '1234'.split('').forEach((c, i) => d.inputChar(i, c))
+    d.cancelPendingComplete()
+    expect(d.state.slotValues).toEqual(['1', '2', '3', '4'])
+    expect(fired).toBe(false)
+  })
+
+  it('partial defaultValue leaves remaining slots empty', () => {
+    const d = createDigito({ length: 6 })
+    '123'.split('').forEach((c, i) => d.inputChar(i, c))
+    d.cancelPendingComplete()
+    expect(d.state.slotValues[3]).toBe('')
+    expect(d.state.isComplete).toBe(false)
+  })
+})
