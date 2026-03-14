@@ -73,3 +73,18 @@ export function createTimer(options: TimerOptions): TimerControls {
 
   return { start, stop, reset, restart }
 }
+
+/**
+ * Format a second count as a `m:ss` countdown string (e.g. `"1:05"`, `"0:30"`).
+ * Used by the vanilla, alpine, and web-component adapters for their built-in timer UI.
+ *
+ * @example formatCountdown(65) → "1:05"
+ * @example formatCountdown(9)  → "0:09"
+ */
+export function formatCountdown(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return minutes > 0
+    ? `${minutes}:${String(seconds).padStart(2, '0')}`
+    : `0:${String(seconds).padStart(2, '0')}`
+}

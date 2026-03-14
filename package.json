@@ -1,6 +1,6 @@
 {
   "name": "digitojs",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "description": "The only framework-agnostic OTP input state machine powering React, Vue, Svelte, Alpine, Vanilla JS, and Web Components from a single core.",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -71,6 +71,7 @@
     "verification-code",
     "one-time-password",
     "authentication",
+    "headless",
     "passcode",
     "otp-field",
     "react-otp",
@@ -85,6 +86,11 @@
     "typescript"
   ],
   "author": "Olawale Balo — Product Designer + Design Engineer",
+  "homepage": "https://digitojs.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theolawalemi/digito"
+  },
   "license": "MIT",
   "peerDependencies": {
     "react": ">=17",

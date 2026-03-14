@@ -328,9 +328,13 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
   )
   const digito = digitoRef.current
 
-  // ── Disabled ref ───────────────────────────────────────────────────────────
-  const disabledRef = useRef(disabled)
-  useEffect(() => { disabledRef.current = disabled }, [disabled])
+  // ── Disabled / readOnly refs ────────────────────────────────────────────────
+  // Stored in refs so memoized callbacks (useCallback with [] deps) always read
+  // the latest value without needing to be recreated on every render.
+  const disabledRef  = useRef(disabled)
+  const readOnlyRef  = useRef(readOnlyProp)
+  useEffect(() => { disabledRef.current = disabled    }, [disabled])
+  useEffect(() => { readOnlyRef.current = readOnlyProp }, [readOnlyProp])
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [state, setState]               = useState<DigitoState>(digito.state)
@@ -410,14 +414,14 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
     const pos = inputRef.current?.selectionStart ?? 0
     if (e.key === 'Backspace') {
       e.preventDefault()
-      if (readOnlyProp) return
+      if (readOnlyRef.current) return
       digito.deleteChar(pos)
       sync()
       const next = digito.state.activeSlot
       requestAnimationFrame(() => inputRef.current?.setSelectionRange(next, next))
     } else if (e.key === 'Delete') {
       e.preventDefault()
-      if (readOnlyProp) return
+      if (readOnlyRef.current) return
       digito.clearSlot(pos)
       sync()
       requestAnimationFrame(() => inputRef.current?.setSelectionRange(pos, pos))
@@ -451,7 +455,7 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
   }, [])
 
   const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    if (disabledRef.current || readOnlyProp) return
+    if (disabledRef.current || readOnlyRef.current) return
     const raw = e.target.value
     if (!raw) {
       digito.resetState()
@@ -472,7 +476,7 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
   }, [type, length, blurOnComplete])
 
   const onPaste = useCallback((e: ClipboardEvent<HTMLInputElement>) => {
-    if (disabledRef.current || readOnlyProp) return
+    if (disabledRef.current || readOnlyRef.current) return
     e.preventDefault()
     const text = e.clipboardData.getData('text')
     const pos  = inputRef.current?.selectionStart ?? 0
