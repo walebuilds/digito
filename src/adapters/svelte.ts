@@ -280,10 +280,17 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
       const pos = node.selectionStart ?? 0
       if (e.key === 'Backspace') {
         e.preventDefault()
+        if (readOnlyOpt) return
         digito.deleteChar(pos)
         sync()
         const next = digito.state.activeSlot
         requestAnimationFrame(() => node.setSelectionRange(next, next))
+      } else if (e.key === 'Delete') {
+        e.preventDefault()
+        if (readOnlyOpt) return
+        digito.clearSlot(pos)
+        sync()
+        requestAnimationFrame(() => node.setSelectionRange(pos, pos))
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         digito.moveFocusLeft(pos)
@@ -314,7 +321,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     }
 
     function onChange(e: Event): void {
-      if (get(isDisabledStore)) return
+      if (get(isDisabledStore) || readOnlyOpt) return
       const raw = (e.target as HTMLInputElement).value
       if (!raw) {
         digito.resetState()
@@ -337,7 +344,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     }
 
     function onPaste(e: ClipboardEvent): void {
-      if (get(isDisabledStore)) return
+      if (get(isDisabledStore) || readOnlyOpt) return
       e.preventDefault()
       const text = e.clipboardData?.getData('text') ?? ''
       const pos  = node.selectionStart ?? 0
