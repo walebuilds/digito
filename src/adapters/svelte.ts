@@ -100,6 +100,8 @@ export type UseOTPResult = {
   maskChar:       ReturnType<typeof writable>
   /** The placeholder character for empty slots. Empty string when not set. */
   placeholder:    string
+  /** Plain object to spread onto the wrapper element as data attributes for CSS/Tailwind targeting. */
+  wrapperAttrs:   Record<string, string>
   /** Svelte action to bind to the single hidden input. */
   action:         (node: HTMLInputElement) => { destroy: () => void }
   /** Returns the current joined code string. */
@@ -170,6 +172,8 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     pasteTransformer,
     onInvalidChar,
     value:             controlledValue,
+    defaultValue,
+    readOnly:          readOnlyOpt = false,
     onChange:          onChangeProp,
     onFocus:           onFocusProp,
     onBlur:            onBlurProp,
@@ -185,7 +189,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
   } = options
 
   // ── Core instance ──────────────────────────────────────────────────────────
-  const digito = createDigito({ length, type, pattern, pasteTransformer, onInvalidChar, onComplete, onExpire, onResend, haptic, sound })
+  const digito = createDigito({ length, type, pattern, pasteTransformer, onInvalidChar, onComplete, onExpire, onResend, haptic, sound, readOnly: readOnlyOpt })
 
   // ── Stores ─────────────────────────────────────────────────────────────────
   const store               = writable(digito.state)
@@ -232,6 +236,14 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
 
   if (controlledValue !== undefined) {
     setValue(controlledValue)
+  } else if (defaultValue) {
+    // Apply defaultValue once — no onComplete, no onChange
+    const filtered = filterString(defaultValue.slice(0, length), type, pattern)
+    if (filtered) {
+      for (let i = 0; i < filtered.length; i++) digito.inputChar(i, filtered[i])
+      digito.cancelPendingComplete()
+      sync(true)
+    }
   }
 
   // ── Timer ──────────────────────────────────────────────────────────────────
@@ -259,6 +271,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     node.setAttribute('aria-label',      `Enter your ${length}-${type === 'numeric' ? 'digit' : 'character'} code`)
     node.setAttribute('autocorrect',     'off')
     node.setAttribute('autocapitalize',  'off')
+    if (readOnlyOpt) node.setAttribute('aria-readonly', 'true')
 
     const unsubDisabled = isDisabledStore.subscribe((v: boolean) => { node.disabled = v })
 
@@ -420,6 +433,17 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
   const hasError   = derived(store, ($s: DigitoState) => $s.hasError)
   const activeSlot = derived(store, ($s: DigitoState) => $s.activeSlot)
 
+  // Derived wrapper data attributes for CSS/Tailwind targeting
+  const wrapperAttrs = derived(
+    [store, isDisabledStore],
+    ([$s, $dis]: [typeof $s, boolean]) => ({
+      ...($s.isComplete ? { 'data-complete': '' } : {}),
+      ...($s.hasError   ? { 'data-invalid':  '' } : {}),
+      ...($dis          ? { 'data-disabled': '' } : {}),
+      ...(readOnlyOpt   ? { 'data-readonly': '' } : {}),
+    })
+  )
+
   return {
     subscribe:      store.subscribe,
     value,
@@ -433,6 +457,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     masked:         maskedStore,
     maskChar:       maskCharStore,
     placeholder:    placeholderOpt,
+    wrapperAttrs,
     action,
     getCode,
     reset,

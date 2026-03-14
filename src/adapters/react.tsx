@@ -62,6 +62,13 @@ export type ReactOTPOptions = DigitoOptions & {
    */
   value?: string
   /**
+   * Uncontrolled initial value. Applied once on mount when `value` is undefined.
+   * Does not trigger `onComplete` or `onChange`.
+   */
+  defaultValue?: string
+  /** When `true`, mutations are blocked; focus/navigation/copy remain allowed. */
+  readOnly?: boolean
+  /**
    * Fires exactly ONCE per user interaction with the current joined code string.
    * Receives partial values too — not just when the code is complete.
    * Use alongside value for a fully controlled pattern.
@@ -211,6 +218,8 @@ export type UseOTPResult = {
   setError:         (isError: boolean) => void
   /** Programmatically move focus to a specific slot index. */
   focus:            (slotIndex: number) => void
+  /** Spread onto the wrapper element to expose state as data attributes for CSS targeting. */
+  wrapperProps: Record<string, string | undefined>
   /**
    * The separator slot index/indices for JSX rendering.
    * Insert a visual divider AFTER each position. `0` / empty array = no separator.
@@ -268,6 +277,8 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
     pasteTransformer,
     onInvalidChar,
     value:           controlledValue,
+    defaultValue,
+    readOnly:        readOnlyProp = false,
     onChange:        onChangeProp,
     onFocus:         onFocusProp,
     onBlur:          onBlurProp,
@@ -308,6 +319,7 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
   const digitoRef = useRef(
     createDigito({
       length, type, haptic, sound, pattern, pasteTransformer,
+      readOnly:      readOnlyProp,
       onComplete:    (code) => onCompleteRef.current?.(code),
       onExpire:      ()     => onExpireRef.current?.(),
       onResend:      ()     => onResendRef.current?.(),
@@ -363,6 +375,19 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controlledValue, length])
+
+  // ── defaultValue — applied once on mount when no controlled value is present ─
+  useEffect(() => {
+    if (controlledValue !== undefined || !defaultValue) return
+    const filtered = filterString(defaultValue.slice(0, length), type, pattern)
+    if (!filtered) return
+    digito.resetState()
+    for (let i = 0; i < filtered.length; i++) digito.inputChar(i, filtered[i])
+    digito.cancelPendingComplete()
+    setState({ ...digito.state })
+    if (inputRef.current) { inputRef.current.value = filtered; inputRef.current.setSelectionRange(filtered.length, filtered.length) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Timer ──────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -525,11 +550,19 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
     spellCheck:     false,
     autoCorrect:    'off',
     autoCapitalize: 'off',
+    ...(readOnlyProp ? { 'aria-readonly': 'true' as const } : {}),
     onKeyDown,
     onChange,
     onPaste,
     onFocus,
     onBlur,
+  }
+
+  const wrapperProps: Record<string, string | undefined> = {
+    ...(state.isComplete ? { 'data-complete': '' } : {}),
+    ...(state.hasError   ? { 'data-invalid':  '' } : {}),
+    ...(disabled         ? { 'data-disabled': '' } : {}),
+    ...(readOnlyProp     ? { 'data-readonly': '' } : {}),
   }
 
   return {
@@ -548,6 +581,7 @@ export function useOTP(options: ReactOTPOptions = {}): UseOTPResult {
     separator,
     hiddenInputProps,
     getSlotProps,
+    wrapperProps,
   }
 }
 

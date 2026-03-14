@@ -237,6 +237,8 @@ function mountOnWrapper(
   const onExpire        = options.onExpire
   const pattern         = options.pattern
   let   isDisabled      = options.disabled    ?? false
+  const isReadOnly      = options.readOnly    ?? false
+  const defaultValue    = options.defaultValue ?? ''
 
   // New options
   const autoFocus      = options.autoFocus !== false         // default true
@@ -275,6 +277,7 @@ function mountOnWrapper(
     sound:            options.sound    ?? false,
     haptic:           options.haptic   ?? true,
     disabled:         isDisabled,
+    readOnly:         isReadOnly,
   })
 
   // ── Build DOM ────────────────────────────────────────────────────────────
@@ -329,6 +332,18 @@ function mountOnWrapper(
   rootEl.appendChild(slotRowEl)
   rootEl.appendChild(hiddenInputEl)
   wrapperEl.appendChild(rootEl)
+
+  if (isReadOnly) hiddenInputEl.setAttribute('aria-readonly', 'true')
+
+  // Apply defaultValue once on mount — no onComplete, no onChange
+  if (defaultValue) {
+    const filtered = filterString(defaultValue.slice(0, slotCount), inputType, pattern)
+    if (filtered) {
+      for (let i = 0; i < filtered.length; i++) otpCore.inputChar(i, filtered[i])
+      otpCore.cancelPendingComplete()
+      hiddenInputEl.value = filtered
+    }
+  }
 
   // ── Password manager badge guard ─────────────────────────────────────────
   let disconnectPasswordManagerWatch: () => void = () => {}
