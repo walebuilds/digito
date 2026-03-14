@@ -129,6 +129,8 @@ export type UseOTPResult = {
   inputRef:         Ref<HTMLInputElement | null>
   /** Attribute object to spread onto the hidden input via v-bind. */
   hiddenInputAttrs: Ref<Record<string, unknown>>
+  /** Spread onto the wrapper element to expose state as data attributes for CSS/Tailwind targeting. */
+  wrapperAttrs:     Ref<Record<string, string | undefined>>
   /** Returns the current joined code string. */
   getCode:          () => string
   /** Clear all slots, restart timer, return focus to input. */
@@ -203,6 +205,8 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
     pasteTransformer,
     onInvalidChar,
     value:             controlledValue,
+    defaultValue,
+    readOnly:          readOnlyOpt = false,
     onChange:          onChangeProp,
     onFocus:           onFocusProp,
     onBlur:            onBlurProp,
@@ -218,7 +222,7 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
   } = options
 
   // ── Core instance ──────────────────────────────────────────────────────────
-  const digito = createDigito({ length, type, pattern, pasteTransformer, onInvalidChar, onComplete, onExpire, onResend, haptic, sound })
+  const digito = createDigito({ length, type, pattern, pasteTransformer, onInvalidChar, onComplete, onExpire, onResend, haptic, sound, readOnly: readOnlyOpt })
 
   // ── Reactive state ─────────────────────────────────────────────────────────
   const slotValues   = ref<string[]>(Array(length).fill(''))
@@ -248,6 +252,14 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
     spellcheck:     'false',
     autocorrect:    'off',
     autocapitalize: 'off',
+    ...(readOnlyOpt ? { 'aria-readonly': 'true' } : {}),
+  }))
+
+  const wrapperAttrs = computed<Record<string, string | undefined>>(() => ({
+    ...(isComplete.value ? { 'data-complete': '' } : {}),
+    ...(hasError.value   ? { 'data-invalid':  '' } : {}),
+    ...(isDisabled.value ? { 'data-disabled': '' } : {}),
+    ...(readOnlyOpt      ? { 'data-readonly': '' } : {}),
   }))
 
   // ── sync() ─────────────────────────────────────────────────────────────────
@@ -298,6 +310,15 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
   let timerControls: ReturnType<typeof createTimer> | null = null
 
   onMounted(() => {
+    if (controlledValue === undefined && defaultValue) {
+      const filtered = filterString(defaultValue.slice(0, length), type, pattern)
+      if (filtered) {
+        for (let i = 0; i < filtered.length; i++) digito.inputChar(i, filtered[i])
+        digito.cancelPendingComplete()
+        sync(true)
+        if (inputRef.value) { inputRef.value.value = filtered; inputRef.value.setSelectionRange(filtered.length, filtered.length) }
+      }
+    }
     if (autoFocusOpt && !initialDisabled && inputRef.value) {
       inputRef.value.focus()
       inputRef.value.setSelectionRange(0, 0)
@@ -449,6 +470,7 @@ export function useOTP(options: VueOTPOptions = {}): UseOTPResult {
     placeholder:    placeholderOpt,
     inputRef,
     hiddenInputAttrs,
+    wrapperAttrs,
     getCode,
     reset,
     setError,
