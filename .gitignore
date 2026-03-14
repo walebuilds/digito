@@ -1,0 +1,25 @@
+# Digito — .gitignore
+node_modules/
+dist/
+*.tsbuildinfo
+.DS_Store
+
+# Jest
+coverage/
+
+# Playwright
+test-results/
+playwright-report/
+.playwright/
+
+# npm
+*.tgz
+
+# Editor
+.vscode/
+.idea/
+
+# AI
+CLAUDE.md
+AUDIT.md
+QUALITY.md

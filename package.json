@@ -1,0 +1,109 @@
+{
+  "name": "digito",
+  "version": "1.0.0",
+  "description": "The only framework-agnostic OTP input state machine powering React, Vue, Svelte, Alpine, Vanilla JS, and Web Components from a single core.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js",
+      "require": "./dist/core/index.js"
+    },
+    "./react": {
+      "types": "./dist/adapters/react.d.ts",
+      "import": "./dist/adapters/react.js",
+      "require": "./dist/adapters/react.js"
+    },
+    "./vue": {
+      "types": "./dist/adapters/vue.d.ts",
+      "import": "./dist/adapters/vue.js",
+      "require": "./dist/adapters/vue.js"
+    },
+    "./svelte": {
+      "types": "./dist/adapters/svelte.d.ts",
+      "import": "./dist/adapters/svelte.js",
+      "require": "./dist/adapters/svelte.js"
+    },
+    "./alpine": {
+      "types": "./dist/adapters/alpine.d.ts",
+      "import": "./dist/adapters/alpine.js",
+      "require": "./dist/adapters/alpine.js"
+    },
+    "./web-component": {
+      "types": "./dist/adapters/web-component.d.ts",
+      "import": "./dist/adapters/web-component.js",
+      "require": "./dist/adapters/web-component.js"
+    }
+  },
+  "sideEffects": [
+    "./dist/adapters/vanilla.js",
+    "./dist/adapters/web-component.js"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "build:cdn": "node build-cdn.js",
+    "build:all": "npm run build && npm run build:cdn",
+    "typecheck": "tsc --noEmit",
+    "test": "jest --no-coverage",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test"
+  },
+  "keywords": [
+    "otp",
+    "otp-input",
+    "2fa",
+    "mfa",
+    "pin-input",
+    "verification-code",
+    "one-time-password",
+    "authentication",
+    "passcode",
+    "otp-field",
+    "react-otp",
+    "vue-otp",
+    "svelte-otp",
+    "alpine-otp",
+    "vanilla-otp",
+    "web-component",
+    "sms-autofill",
+    "accessible-otp",
+    "state-machine",
+    "typescript"
+  ],
+  "author": "Olawale Balo — Product Designer + Design Engineer",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=17",
+    "svelte": ">=4",
+    "vue": ">=3"
+  },
+  "peerDependenciesOptional": {
+    "react": true,
+    "vue": true,
+    "svelte": true
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^18.0.0",
+    "esbuild": "^0.27.4",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.4.0"
+  },
+  "type": "module"
+}
