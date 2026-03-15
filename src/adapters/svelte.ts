@@ -112,6 +112,11 @@ export type UseOTPResult = {
   setError:       (isError: boolean) => void
   /** Enable or disable the field at runtime. */
   setDisabled:    (value: boolean) => void
+  /**
+   * Toggle readOnly at runtime. When `true`, all slot mutations are blocked
+   * but focus, navigation, and copy remain fully functional.
+   */
+  setReadOnly:    (value: boolean) => void
   /** Programmatically move focus to a slot index. */
   focus:          (slotIndex: number) => void
   /**
@@ -195,12 +200,14 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
   const store               = writable(digito.state)
   const timerStore          = writable(timerSecs)
   const isDisabledStore     = writable(initialDisabled)
+  const isReadOnlyStore     = writable(readOnlyOpt)
   const separatorAfterStore = writable(separatorAfterOpt)
   const separatorStore      = writable(separatorOpt)
   const maskedStore         = writable(maskedOpt)
   const maskCharStore       = writable(maskCharOpt)
 
-  let inputEl: HTMLInputElement | null = null
+  let inputEl:    HTMLInputElement | null = null
+  let isReadOnly: boolean                = readOnlyOpt
 
   // ── sync() ─────────────────────────────────────────────────────────────────
   function sync(suppressOnChange = false): void {
@@ -280,14 +287,14 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
       const pos = node.selectionStart ?? 0
       if (e.key === 'Backspace') {
         e.preventDefault()
-        if (readOnlyOpt) return
+        if (isReadOnly) return
         digito.deleteChar(pos)
         sync()
         const next = digito.state.activeSlot
         requestAnimationFrame(() => node.setSelectionRange(next, next))
       } else if (e.key === 'Delete') {
         e.preventDefault()
-        if (readOnlyOpt) return
+        if (isReadOnly) return
         digito.clearSlot(pos)
         sync()
         requestAnimationFrame(() => node.setSelectionRange(pos, pos))
@@ -321,7 +328,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     }
 
     function onChange(e: Event): void {
-      if (get(isDisabledStore) || readOnlyOpt) return
+      if (get(isDisabledStore) || isReadOnly) return
       const raw = (e.target as HTMLInputElement).value
       if (!raw) {
         digito.resetState()
@@ -344,7 +351,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     }
 
     function onPaste(e: ClipboardEvent): void {
-      if (get(isDisabledStore) || readOnlyOpt) return
+      if (get(isDisabledStore) || isReadOnly) return
       e.preventDefault()
       const text = e.clipboardData?.getData('text') ?? ''
       const pos  = node.selectionStart ?? 0
@@ -423,6 +430,19 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     digito.setDisabled(value)
   }
 
+  function setReadOnly(value: boolean): void {
+    isReadOnly = value
+    isReadOnlyStore.set(value)
+    digito.setReadOnly(value)
+    if (inputEl) {
+      if (value) {
+        inputEl.setAttribute('aria-readonly', 'true')
+      } else {
+        inputEl.removeAttribute('aria-readonly')
+      }
+    }
+  }
+
   function focus(slotIndex: number): void {
     digito.moveFocusTo(slotIndex)
     inputEl?.focus()
@@ -442,12 +462,12 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
 
   // Derived wrapper data attributes for CSS/Tailwind targeting
   const wrapperAttrs = derived(
-    [store, isDisabledStore],
-    ([$s, $dis]: [DigitoState, boolean]) => ({
+    [store, isDisabledStore, isReadOnlyStore],
+    ([$s, $dis, $ro]: [DigitoState, boolean, boolean]) => ({
       ...($s.isComplete ? { 'data-complete': '' } : {}),
       ...($s.hasError   ? { 'data-invalid':  '' } : {}),
       ...($dis          ? { 'data-disabled': '' } : {}),
-      ...(readOnlyOpt   ? { 'data-readonly': '' } : {}),
+      ...($ro           ? { 'data-readonly': '' } : {}),
     })
   )
 
@@ -470,6 +490,7 @@ export function useOTP(options: SvelteOTPOptions = {}): UseOTPResult {
     reset,
     setError,
     setDisabled,
+    setReadOnly,
     setValue,
     focus,
   }

@@ -867,6 +867,24 @@ class DigitoInput extends HTMLElement {
     }
   }
 
+  /**
+   * Toggle readOnly at runtime. When `true`, all slot mutations are blocked
+   * but focus, navigation, and copy remain fully functional.
+   * Distinct from `disabled` — no opacity/cursor change, `aria-readonly` is set.
+   */
+  setReadOnly(value: boolean): void {
+    this._isReadOnly = value
+    this.digito?.setReadOnly(value)
+    if (this.hiddenInput) {
+      if (value) {
+        this.hiddenInput.setAttribute('aria-readonly', 'true')
+      } else {
+        this.hiddenInput.removeAttribute('aria-readonly')
+      }
+    }
+    this.syncSlotsToDOM()
+  }
+
   /** Returns the current code as a joined string (e.g. `"123456"`). */
   getCode(): string {
     return this.digito?.getCode() ?? ''

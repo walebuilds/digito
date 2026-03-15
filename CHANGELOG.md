@@ -6,10 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `Delete` key support — clears current slot, stays in place, no backward movement
-- `defaultValue` option — uncontrolled pre-fill on mount, plain string, runs once, does not trigger `onComplete`
-- `readOnly` mode — display and copy, no edit, visually and semantically distinct from `disabled`
-- `data-complete`, `data-invalid`, `data-disabled`, `data-readonly` attributes on the wrapper element across all adapters — boolean presence attributes that mirror field state, compatible with Tailwind `data-*` variants and plain CSS attribute selectors
+- `Delete` key — clears the current slot value and keeps focus in place (distinct from Backspace, which moves back)
+- `defaultValue` option — pre-fills slots on mount without triggering `onComplete` or `onChange`. Filtered through `type` and `pattern`; exposed as the `default-value` HTML attribute
+- `readOnly` mode — blocks mutations while allowing focus and navigation; no opacity and cursor change unlike `disabled`; `aria-readonly="true"` on the hidden input; togglable at runtime via `setReadOnly(bool)`
+- `data-complete`, `data-invalid`, `data-disabled`, `data-readonly` — boolean presence attributes on the wrapper, updated on every state change. Compatible with Tailwind `data-*` variants and CSS attribute selectors
 
 ## [1.0.1] — 2026-03-14
 

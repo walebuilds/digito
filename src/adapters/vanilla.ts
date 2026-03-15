@@ -63,6 +63,12 @@ export type DigitoInstance = {
    * verification to prevent the user from modifying the code mid-request.
    */
   setDisabled:  (isDisabled: boolean) => void
+  /**
+   * Toggle readOnly at runtime. When `true`, all slot mutations are blocked
+   * but focus, navigation, and copy remain fully functional.
+   * Distinct from `disabled` — no opacity/cursor change, `aria-readonly` is set.
+   */
+  setReadOnly:  (isReadOnly: boolean) => void
   /** Returns the current joined code string. */
   getCode:      () => string
   /** Programmatically move focus to a slot index (focuses the hidden input). */
@@ -238,7 +244,7 @@ function mountOnWrapper(
   const onExpire        = options.onExpire
   const pattern         = options.pattern
   let   isDisabled      = options.disabled    ?? false
-  const isReadOnly      = options.readOnly    ?? false
+  let   isReadOnly      = options.readOnly    ?? false
   const defaultValue    = options.defaultValue ?? ''
 
   // New options
@@ -717,6 +723,17 @@ function mountOnWrapper(
     })
   }
 
+  function setReadOnly(value: boolean): void {
+    isReadOnly = value
+    otpCore.setReadOnly(value)
+    if (value) {
+      hiddenInputEl.setAttribute('aria-readonly', 'true')
+    } else {
+      hiddenInputEl.removeAttribute('aria-readonly')
+    }
+    syncSlotsToDOM()
+  }
+
   function getCode(): string {
     return otpCore.getCode()
   }
@@ -743,7 +760,7 @@ function mountOnWrapper(
     wrapperEl.__digitoResendRowEl = null
   }
 
-  return { reset, resend, setError, setSuccess, setDisabled, getCode, focus, destroy }
+  return { reset, resend, setError, setSuccess, setDisabled, setReadOnly, getCode, focus, destroy }
 }
 
 

@@ -2078,6 +2078,69 @@ describe('readOnly mode', () => {
 })
 
 
+describe('setReadOnly — runtime toggle', () => {
+  it('enabling readOnly after construction blocks input', () => {
+    const d = createDigito({ length: 4 })
+    d.inputChar(0, '1')
+    d.setReadOnly(true)
+    d.inputChar(1, '2')
+    expect(d.state.slotValues[1]).toBe('')    // blocked
+    expect(d.state.slotValues[0]).toBe('1')  // previous char preserved
+  })
+
+  it('disabling readOnly resumes input', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    d.setReadOnly(false)
+    d.inputChar(0, '9')
+    expect(d.state.slotValues[0]).toBe('9')
+  })
+
+  it('setReadOnly(true) blocks deleteChar', () => {
+    const d = createDigito({ length: 4 })
+    d.inputChar(0, '5')
+    d.setReadOnly(true)
+    d.deleteChar(0)
+    expect(d.state.slotValues[0]).toBe('5')
+  })
+
+  it('setReadOnly(true) blocks clearSlot', () => {
+    const d = createDigito({ length: 4 })
+    d.inputChar(0, '7')
+    d.setReadOnly(true)
+    d.clearSlot(0)
+    expect(d.state.slotValues[0]).toBe('7')
+  })
+
+  it('setReadOnly(true) blocks pasteString', () => {
+    const d = createDigito({ length: 4 })
+    d.setReadOnly(true)
+    d.pasteString(0, '1234')
+    expect(d.state.slotValues.join('')).toBe('')
+  })
+
+  it('setReadOnly does not affect navigation', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    d.moveFocusTo(3)
+    d.setReadOnly(true)
+    d.moveFocusLeft(3)
+    expect(d.state.activeSlot).toBe(2)
+  })
+
+  it('toggle readOnly on/off multiple times works correctly', () => {
+    const d = createDigito({ length: 4 })
+    d.setReadOnly(true)
+    d.inputChar(0, '1')
+    expect(d.state.slotValues[0]).toBe('')
+    d.setReadOnly(false)
+    d.inputChar(0, '1')
+    expect(d.state.slotValues[0]).toBe('1')
+    d.setReadOnly(true)
+    d.inputChar(1, '2')
+    expect(d.state.slotValues[1]).toBe('')
+  })
+})
+
+
 describe('defaultValue in core initialisation', () => {
   it('pre-fills slots via inputChar without triggering onComplete', () => {
     let fired = false

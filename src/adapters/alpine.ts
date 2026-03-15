@@ -169,6 +169,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
     const digito = createDigito({ length, type, pattern, pasteTransformer, onInvalidChar, onComplete, onExpire, onResend, haptic, sound, readOnly: readOnlyOpt })
 
     let isDisabled   = initialDisabled
+    let isReadOnly   = readOnlyOpt
     let successState = false
 
     // ── Build DOM ─────────────────────────────────────────────────────────────
@@ -433,7 +434,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
       wrapperEl.toggleAttribute('data-complete', digito.state.isComplete)
       wrapperEl.toggleAttribute('data-invalid',  digito.state.hasError)
       wrapperEl.toggleAttribute('data-disabled', isDisabled)
-      wrapperEl.toggleAttribute('data-readonly', readOnlyOpt)
+      wrapperEl.toggleAttribute('data-readonly', isReadOnly)
     }
 
     // ── Event handlers ─────────────────────────────────────────────────────────
@@ -442,7 +443,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
       const pos = hiddenInputEl.selectionStart ?? 0
       if (e.key === 'Backspace') {
         e.preventDefault()
-        if (readOnlyOpt) return
+        if (isReadOnly) return
         digito.deleteChar(pos)
         syncSlotsToDOM()
         onChangeProp?.(digito.getCode())
@@ -450,7 +451,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
         requestAnimationFrame(() => hiddenInputEl.setSelectionRange(next, next))
       } else if (e.key === 'Delete') {
         e.preventDefault()
-        if (readOnlyOpt) return
+        if (isReadOnly) return
         digito.clearSlot(pos)
         syncSlotsToDOM()
         onChangeProp?.(digito.getCode())
@@ -485,7 +486,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
     })
 
     hiddenInputEl.addEventListener('input', () => {
-      if (isDisabled || readOnlyOpt) return
+      if (isDisabled || isReadOnly) return
       const raw = hiddenInputEl.value
       if (!raw) {
         digito.resetState()
@@ -510,7 +511,7 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
     })
 
     hiddenInputEl.addEventListener('paste', (e) => {
-      if (isDisabled || readOnlyOpt) return
+      if (isDisabled || isReadOnly) return
       e.preventDefault()
       const text = e.clipboardData?.getData('text') ?? ''
       const pos  = hiddenInputEl.selectionStart ?? 0
@@ -648,6 +649,22 @@ export const DigitoAlpine = (Alpine: AlpinePlugin): void => {
             hiddenInputEl.setSelectionRange(digito.state.activeSlot, digito.state.activeSlot)
           })
         }
+      },
+
+      /**
+       * Toggle readOnly at runtime. When `true`, all slot mutations are blocked
+       * but focus, navigation, and copy remain fully functional.
+       * Distinct from `disabled` — no opacity/cursor change, `aria-readonly` is set.
+       */
+      setReadOnly: (value: boolean) => {
+        isReadOnly = value
+        digito.setReadOnly(value)
+        if (value) {
+          hiddenInputEl.setAttribute('aria-readonly', 'true')
+        } else {
+          hiddenInputEl.removeAttribute('aria-readonly')
+        }
+        syncSlotsToDOM()
       },
 
       /**
