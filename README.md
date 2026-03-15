@@ -610,7 +610,7 @@ import { filterChar, filterString } from 'digitojs'
 filterChar('A', 'numeric')          // → '' (rejected)
 filterChar('5', 'numeric')          // → '5'
 filterChar('A', 'alphanumeric')     // → 'A'
-filterChar('Z', 'any', /^[A-Z]$/)  // → 'Z' (pattern overrides type)
+filterChar('Z', 'any', /^[A-Z]$/)   // → 'Z' (pattern overrides type)
 
 filterString('84AB91', 'numeric')   // → '8491'
 ```
