@@ -1,7 +1,7 @@
 {
   "name": "digitojs",
-  "version": "1.2.0",
-  "description": "The only framework-agnostic OTP input state machine powering React, Vue, Svelte, Alpine, Vanilla JS, and Web Components from a single core.",
+  "version": "1.2.1",
+  "description": "Reliable OTP inputs for any framework from a single core.",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",

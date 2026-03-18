@@ -31,7 +31,7 @@ const shared = {
   format:    'iife',
   logLevel:  'info',
   banner: {
-    js: '/*! Digito v1.2.0 | MIT | Olawale Balo — Product Designer + Design Engineer */',
+    js: '/*! Digito v1.2.1 | MIT | Olawale Balo — Product Designer + Design Engineer */',
   },
 }
 

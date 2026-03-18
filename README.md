@@ -24,9 +24,9 @@
 
 ## Overview
 
-Digito is a fully-featured, zero-dependency OTP input library for the web. It handles SMS autofill, password managers, smart paste, screen readers, countdown timers, and resend flows — without requiring you to patch or workaround any of them.
+Digito is a fully-featured, zero-dependency OTP input library for the web. It handles SMS autofill, password managers, smart paste, screen readers, countdown timers, and resend flows without requiring you to patch or work around any of them.
 
-Most OTP libraries render one `<input>` per slot. This breaks native autofill, confuses screen readers, and creates complex focus-juggling logic. Digito instead renders **one transparent input** that captures all keyboard and paste events, with purely visual `<div>` elements mirroring the state. The browser sees a single real field — everything works as expected.
+Most OTP libraries render one `<input>` per slot. This breaks native autofill, confuses screen readers, and creates complex focus-juggling logic. Digito instead renders **one transparent input** that captures all keyboard and paste events, with purely visual `<div>` elements mirroring the state. The browser sees a single real field, so everything works as expected.
 
 The core is a **pure state machine** with no DOM or framework dependencies, wrapped by six independent adapters: Vanilla JS, React, Vue, Svelte, Alpine.js, and Web Component.
 
@@ -76,10 +76,10 @@ The core is a **pure state machine** with no DOM or framework dependencies, wrap
 | Svelte | ✅ | ✗ | ✗ |
 | Alpine.js | ✅ | ✗ | ✗ |
 | Web Component | ✅ | ✗ | ✗ |
+| React | ✅ | ✅ | ✅ |
 | Single hidden input | ✅ | ✅ | ✗ |
 | Fake caret | ✅ | ✅ | ✗ |
 | Password manager guard | ✅ | ✅ | ✗ |
-| React | ✅ | ✅ | ✅ |
 | Zero dependencies | ✅ | ✅ | ✗ |
 | TypeScript | ✅ | ✅ | ✅ |
 
@@ -126,7 +126,7 @@ yarn add digitojs
 
 Digito injects the slot inputs, styles, countdown badge, and resend button automatically. Nothing else to configure.
 
-> **Note:** `verify(code)`, `sendOTP()`, and similar functions used throughout the examples are placeholder names — replace them with your own API calls or application logic.
+> **Note:** `verify(code)`, `sendOTP()`, and similar functions used throughout the examples are placeholder names, so replace them with your own API calls or application logic.
 
 ---
 
@@ -574,7 +574,7 @@ otp.getCode()
 otp.getSnapshot()
 otp.getState()    // alias for getSnapshot() — Zustand-style
 
-// Subscription (XState/Zustand-style)
+// Subscription (XState style)
 const unsub = otp.subscribe(state => render(state))
 unsub()
 ```
@@ -598,7 +598,7 @@ timer.reset()    // restore to totalSeconds without restarting
 timer.restart()  // reset + start
 ```
 
-If `totalSeconds <= 0`, `onExpire` fires immediately on `start()`. `start()` is idempotent — calling it twice never double-ticks.
+If `totalSeconds <= 0`, `onExpire` fires immediately on `start()`. The `start()` method is idempotent, so calling it twice never double-ticks.
 
 ---
 
@@ -721,7 +721,7 @@ Set on `.digito-wrapper` (vanilla) or `digito-input` (web component) to theme th
 
 ### Data Attribute State Hooks
 
-All adapters set boolean presence attributes on the wrapper element that mirror the current field state — no extra JS needed. Works with Tailwind `data-*` variants and plain CSS attribute selectors.
+All adapters set boolean presence attributes on the wrapper element that mirror the current field state, with no extra JS needed. It works with Tailwind `data-*` variants and plain CSS attribute selectors.
 
 | Attribute | Set when |
 |---|---|
@@ -779,10 +779,10 @@ Digito is built with accessibility as a first-class concern:
 
 | Browser | Support |
 |---|---|
-| Chrome / Edge | ✅ Full support including Web OTP API |
-| Firefox | ✅ Full support |
-| Safari / iOS Safari | ✅ Full support including SMS autofill |
-| Android Chrome | ✅ Full support including Web OTP API |
+| Chrome / Edge | Full support including Web OTP API |
+| Firefox | Full support |
+| Safari / iOS Safari | Full support including SMS autofill |
+| Android Chrome | Full support including Web OTP API |
 
 **Frameworks (peer deps, all optional):**
 
@@ -823,4 +823,4 @@ import { formatCountdown } from 'digitojs/core'
 
 ## License
 
-MIT © [Olawale Balo](https://github.com/theolawalemi)
+MIT © [Olawale Balo](https://x.com/theolawalemi)
