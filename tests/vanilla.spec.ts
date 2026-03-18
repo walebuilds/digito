@@ -8,7 +8,7 @@
  *   - masked: false (hidden input type="text")
  *   - pasteTransformer: strips /[\s-]/g
  *   - Verify button: code "123456" → success, anything else → error
- *   - window.Digito.init is available for programmatic instances in tests
+ *   - window.Digito.initDigito is available for programmatic instances in tests
  */
 
 import { test, expect, type Page } from '@playwright/test'
@@ -73,7 +73,7 @@ test.describe('Vanilla adapter — render', () => {
       const wrapper = document.createElement('div')
       wrapper.id = 'test-separator-render'
       document.body.appendChild(wrapper)
-      ;(window as any).Digito.init('#test-separator-render', {
+      ;(window as any).Digito.initDigito('#test-separator-render', {
         length: 6,
         type: 'numeric',
         separatorAfter: 3,
@@ -104,7 +104,7 @@ test.describe('Vanilla adapter — render', () => {
       const div = document.createElement('div')
       div.id = 'test-inputmode'
       document.body.appendChild(div)
-      ;(window as any).Digito.init('#test-inputmode', {
+      ;(window as any).Digito.initDigito('#test-inputmode', {
         length: 4,
         type: 'numeric',
         autoFocus: false,
@@ -255,7 +255,7 @@ test.describe('Vanilla adapter — verify flow', () => {
       const div = document.createElement('div')
       div.id = 'test-oncomplete'
       document.body.appendChild(div)
-      ;(window as any).Digito.init('#test-oncomplete', {
+      ;(window as any).Digito.initDigito('#test-oncomplete', {
         length: 4,
         type: 'numeric',
         autoFocus: false,
@@ -366,7 +366,7 @@ test.describe('Vanilla adapter — disabled and masked', () => {
       const div = document.createElement('div')
       div.id = 'test-disabled'
       document.body.appendChild(div)
-      const [inst] = (window as any).Digito.init('#test-disabled', {
+      const [inst] = (window as any).Digito.initDigito('#test-disabled', {
         length: 4,
         type: 'numeric',
         autoFocus: false,
@@ -382,7 +382,7 @@ test.describe('Vanilla adapter — disabled and masked', () => {
       const div = document.createElement('div')
       div.id = 'test-masked'
       document.body.appendChild(div)
-      ;(window as any).Digito.init('#test-masked', {
+      ;(window as any).Digito.initDigito('#test-masked', {
         length: 4,
         type: 'numeric',
         masked: true,
@@ -399,7 +399,7 @@ test.describe('Vanilla adapter — disabled and masked', () => {
       const div = document.createElement('div')
       div.id = 'test-masked2'
       document.body.appendChild(div)
-      ;(window as any).Digito.init('#test-masked2', {
+      ;(window as any).Digito.initDigito('#test-masked2', {
         length: 4,
         type: 'numeric',
         masked: true,

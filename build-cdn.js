@@ -7,12 +7,12 @@
  *   dist/digito-wc.min.js  — <digito-input> web component (auto-registers)
  *
  * Both are minified, target ES2017 (async/await transpiled), and include an
- * inline source map for debugging. Import via CDN:
+ * external source map for debugging. Import via CDN:
  *
- *   <script src="https://unpkg.com/digito/dist/digito.min.js"></script>
- *   <!-- window.Digito.init('.digito-wrapper', { length: 6 }) -->
+ *   <script src="https://unpkg.com/digitojs/dist/digito.min.js"></script>
+ *   <!-- const { initDigito, createDigito, filterChar, filterString } = window.Digito -->
  *
- *   <script src="https://unpkg.com/digito/dist/digito-wc.min.js"></script>
+ *   <script src="https://unpkg.com/digitojs/dist/digito-wc.min.js"></script>
  *   <!-- <digito-input length="6"></digito-input> -->
  *
  * Usage:
@@ -36,10 +36,11 @@ const shared = {
 }
 
 await Promise.all([
-  // Vanilla adapter — window.Digito.init() global
+  // Vanilla adapter + core utilities — window.Digito global
   esbuild.build({
     ...shared,
-    entryPoints: ['src/adapters/vanilla.ts'],
+    entryPoints: ['src/cdn.ts'],
+    globalName:  'Digito',
     outfile:     'dist/digito.min.js',
   }),
 
