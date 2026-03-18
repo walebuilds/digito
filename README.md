@@ -63,7 +63,7 @@ The core is a **pure state machine** with no DOM or framework dependencies, wrap
 |---|---|---|---|
 | Pure headless state machine | ✅ | ✗ | ✗ |
 | Web OTP API (SMS intercept) | ✅ | ✗ | ✗ |
-| Built-in timer + resend | ✅ | ✗ | ✗ |
+| Built-in timer and resend | ✅ | ✗ | ✗ |
 | Masked mode | ✅ | ✗ | ✗ |
 | Programmatic API (`setError`, `setSuccess`, `reset`, `focus`) | ✅ | ✗ | ✗ |
 | Haptic + sound feedback | ✅ | ✗ | ✗ |
