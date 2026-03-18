@@ -26,6 +26,10 @@ export type DigitoState = {
    * Do not use this field to read remaining time; use the adapter's onTick callback instead.
    */
   timerSeconds: number
+  /** Whether the input is currently disabled. Reflects the latest `setDisabled()` call. */
+  isDisabled: boolean
+  /** Whether the input is currently read-only. Reflects the latest `setReadOnly()` call. */
+  isReadOnly: boolean
 }
 
 /** Configuration options passed to `createDigito` or `initDigito`. */

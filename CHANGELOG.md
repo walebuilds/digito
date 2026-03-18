@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2] — 2026-03-18
+
+### Fixed
+
+- `isDisabled` and `isReadOnly` are now part of the public state snapshot — previously stored as private closure variables, never exposed on `state` or `getSnapshot()`, causing both to always return `undefined`
+- `subscribe()` now fires when `setDisabled()` or `setReadOnly()` is called — previously subscribers were never notified, making it impossible for framework adapters to reactively derive UI from these values
+- `DigitoState` TypeScript interface updated — `isDisabled: boolean` and `isReadOnly: boolean` are now declared for correct type inference
+
 ## [1.2.0] — 2026-03-14
 
 ### Added

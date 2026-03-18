@@ -82,6 +82,8 @@ export function createDigito(options: DigitoOptions = {}) {
     hasError:     false,
     isComplete:   false,
     timerSeconds: options.timer ?? 0,
+    isDisabled:   options.disabled ?? false,
+    isReadOnly:   options.readOnly ?? false,
   }
 
   // ── Subscription set ──────────────────────────────────────────────────────
@@ -313,6 +315,7 @@ export function createDigito(options: DigitoOptions = {}) {
    */
   function setDisabled(value: boolean): void {
     disabled = value
+    applyState({ isDisabled: value })
   }
 
   /**
@@ -321,6 +324,7 @@ export function createDigito(options: DigitoOptions = {}) {
    */
   function setReadOnly(value: boolean): void {
     readOnly = value
+    applyState({ isReadOnly: value })
   }
 
   /**

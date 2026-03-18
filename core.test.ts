@@ -2141,6 +2141,71 @@ describe('setReadOnly — runtime toggle', () => {
 })
 
 
+describe('isDisabled and isReadOnly reflected in state', () => {
+  it('state.isDisabled is false by default', () => {
+    const d = createDigito({ length: 4 })
+    expect(d.state.isDisabled).toBe(false)
+  })
+
+  it('state.isDisabled is true when disabled option is passed', () => {
+    const d = createDigito({ length: 4, disabled: true })
+    expect(d.state.isDisabled).toBe(true)
+  })
+
+  it('setDisabled(true) updates state.isDisabled', () => {
+    const d = createDigito({ length: 4 })
+    d.setDisabled(true)
+    expect(d.state.isDisabled).toBe(true)
+  })
+
+  it('setDisabled(false) updates state.isDisabled back to false', () => {
+    const d = createDigito({ length: 4, disabled: true })
+    d.setDisabled(false)
+    expect(d.state.isDisabled).toBe(false)
+  })
+
+  it('state.isReadOnly is false by default', () => {
+    const d = createDigito({ length: 4 })
+    expect(d.state.isReadOnly).toBe(false)
+  })
+
+  it('state.isReadOnly is true when readOnly option is passed', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    expect(d.state.isReadOnly).toBe(true)
+  })
+
+  it('setReadOnly(true) updates state.isReadOnly', () => {
+    const d = createDigito({ length: 4 })
+    d.setReadOnly(true)
+    expect(d.state.isReadOnly).toBe(true)
+  })
+
+  it('setReadOnly(false) updates state.isReadOnly back to false', () => {
+    const d = createDigito({ length: 4, readOnly: true })
+    d.setReadOnly(false)
+    expect(d.state.isReadOnly).toBe(false)
+  })
+
+  it('subscriber receives updated isDisabled when setDisabled is called', () => {
+    const d = createDigito({ length: 4 })
+    const snapshots: boolean[] = []
+    d.subscribe(s => snapshots.push(s.isDisabled))
+    d.setDisabled(true)
+    d.setDisabled(false)
+    expect(snapshots).toEqual([true, false])
+  })
+
+  it('subscriber receives updated isReadOnly when setReadOnly is called', () => {
+    const d = createDigito({ length: 4 })
+    const snapshots: boolean[] = []
+    d.subscribe(s => snapshots.push(s.isReadOnly))
+    d.setReadOnly(true)
+    d.setReadOnly(false)
+    expect(snapshots).toEqual([true, false])
+  })
+})
+
+
 describe('defaultValue in core initialisation', () => {
   it('pre-fills slots via inputChar without triggering onComplete', () => {
     let fired = false
