@@ -1,6 +1,6 @@
 {
   "name": "digitojs",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Reliable OTP inputs for any framework from a single core.",
   "main": "dist/index.js",
   "module": "dist/index.js",
