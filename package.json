@@ -88,10 +88,10 @@
   "homepage": "https://digitojs.vercel.app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theolawalemi/digito.git"
+    "url": "git+https://github.com/walebuilds/digito.git"
   },
   "bugs": {
-    "url": "https://github.com/theolawalemi/digito/issues"
+    "url": "https://github.com/walebuilds/digito/issues"
   },
   "license": "MIT",
   "peerDependencies": {

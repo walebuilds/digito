@@ -1,5 +1,5 @@
 <a href="https://digitojs.vercel.app" target="_blank">
-  <img src="https://raw.githubusercontent.com/theolawalemi/digito/refs/heads/main/assets/banner.png" alt="Digito — Live Demo" width="100%" />
+  <img src="https://raw.githubusercontent.com/walebuilds/digito/refs/heads/main/assets/banner.png" alt="Digito — Live Demo" width="100%" />
 </a>
 
 <h1 align="center">digito</h1>
@@ -9,15 +9,7 @@
 </h3>
 
 <p align="center">
-  By <a href="https://x.com/theolawalemi">@Olawale Balo</a> — Product Designer + Design Engineer
-</p>
-
-<p align="center">
-  <a href="https://digitojs.vercel.app"><img src="https://img.shields.io/badge/digitojs.vercel.app-live-20C55C" alt="Live demo" /></a>&nbsp;
-  <a href="https://www.npmjs.com/package/digitojs"><img src="https://img.shields.io/npm/v/digitojs?color=20C55C&label=digitojs" alt="npm version" /></a>&nbsp;
-  <a href="https://bundlephobia.com/package/digitojs"><img src="https://img.shields.io/bundlephobia/minzip/digitojs?color=20C55C&label=gzip" alt="gzip size" /></a>&nbsp;
-  <img src="https://img.shields.io/badge/Dependencies-0-20C55C" alt="Zero dependencies" />&nbsp;
-  <a href="https://www.typescriptlang.org"><img src="https://img.shields.io/badge/TypeScript-strict-20C55C" alt="TypeScript" /></a>
+  By <a href="https://github.com/walebuilds">@Olawale Balo</a> — Product Designer + Design Engineer
 </p>
 
 ---
@@ -78,7 +70,6 @@ The core is a **pure state machine** with no DOM or framework dependencies, wrap
 | Web Component | ✅ | ✗ | ✗ |
 | React | ✅ | ✅ | ✅ |
 | Single hidden input | ✅ | ✅ | ✗ |
-| Fake caret | ✅ | ✅ | ✗ |
 | Password manager guard | ✅ | ✅ | ✗ |
 | Zero dependencies | ✅ | ✅ | ✗ |
 | TypeScript | ✅ | ✅ | ✅ |
@@ -677,28 +668,28 @@ Set on `.digito-wrapper` (vanilla) or `digito-input` (web component) to theme th
 ```css
 .digito-wrapper {
   /* Dimensions */
-  --digito-size:          56px;             /* slot width + height    */
-  --digito-gap:           12px;             /* gap between slots      */
-  --digito-radius:        10px;             /* slot border radius     */
-  --digito-font-size:     24px;             /* digit font size        */
+  --digito-size:          56px;
+  --digito-gap:           12px;
+  --digito-radius:        10px;
+  --digito-font-size:     24px;
 
   /* Colors */
-  --digito-color:         #0A0A0A;        /* digit text color       */
-  --digito-bg:            #FAFAFA;        /* empty slot background  */
-  --digito-bg-filled:     #FFFFFF;        /* filled slot background */
-  --digito-border-color:  #E5E5E5;        /* default slot border    */
-  --digito-active-color:  #3D3D3D;        /* active border + ring   */
-  --digito-error-color:   #FB2C36;        /* error border + ring    */
-  --digito-success-color: #00C950;        /* success border + ring  */
-  --digito-caret-color:   #3D3D3D;        /* fake caret color       */
-  --digito-timer-color:   #5C5C5C;        /* footer text            */
+  --digito-color:         #0A0A0A;
+  --digito-bg:            #FAFAFA;
+  --digito-bg-filled:     #FFFFFF;
+  --digito-border-color:  #E5E5E5;
+  --digito-active-color:  #3D3D3D;
+  --digito-error-color:   #FB2C36;
+  --digito-success-color: #00C950;
+  --digito-caret-color:   #3D3D3D;
+  --digito-timer-color:   #5C5C5C;
 
   /* Placeholder, separator & mask */
-  --digito-placeholder-color: #D3D3D3;    /* placeholder glyph color */
-  --digito-placeholder-size:  16px;         /* placeholder glyph size  */
-  --digito-separator-color:   #A1A1A1;    /* separator text color    */
-  --digito-separator-size:    18px;         /* separator font size     */
-  --digito-masked-size:       16px;         /* mask glyph font size    */
+  --digito-placeholder-color: #D3D3D3;
+  --digito-placeholder-size:  16px;
+  --digito-separator-color:   #A1A1A1;
+  --digito-separator-size:    18px;
+  --digito-masked-size:       16px;
 }
 ```
 
@@ -823,4 +814,4 @@ import { formatCountdown } from 'digitojs/core'
 
 ## License
 
-MIT © [Olawale Balo](https://x.com/theolawalemi)
+MIT © [Olawale Balo](https://github.com/walebuilds)
