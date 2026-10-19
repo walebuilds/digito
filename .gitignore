@@ -17,4 +17,9 @@ playwright-report/
 
 # Editor
 .vscode/
-.idea/
+.idea/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.pem

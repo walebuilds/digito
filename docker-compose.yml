@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  digito-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: digito-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
